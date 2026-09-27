@@ -54,6 +54,7 @@ if ($data['status'] == 'OD') {
     $pay = array(
         'order_num' => $data['trade_order_id'],
         'pay_type'  => 'xunhupay_' . $payment,
+        'pay_price' => $data['total_fee'],
         'pay_num'   => $data['transaction_id'],
     );
 

@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:37
- * @LastEditTime : 2026-05-05 20:54:48
+ * @LastEditTime : 2026-08-26 22:00:00
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -46,22 +46,189 @@ function zib_captcha_time($second = 40)
     }
 }
 
+/**
+ * 获取验证码发送防刷配置
+ *
+ * @return array
+ */
+function zib_get_captcha_send_limit_option()
+{
+    $option = _pz('brush_limit_captcha_send');
+    if (!is_array($option)) {
+        $option = array();
+    }
+
+    return wp_parse_args($option, array(
+        'cooldown'      => 60,
+        'to_hour_1'     => 5,
+        'to_day_1'      => 10,
+        'ip_minutes_10' => 5,
+        'ip_day_1'      => 20,
+    ));
+}
+
+/**
+ * 验证码发送是否应跳过 IP 维度限制
+ *
+ * @param string $ip IP 地址
+ * @return bool
+ */
+function zib_captcha_send_skip_ip_limit($ip)
+{
+    return !$ip || preg_match('/^(?:127|172\.16|192\.168)\./', $ip);
+}
+
+/**
+ * 验证码发送防刷：检查是否允许发送
+ *
+ * @param string $to 收件人邮箱或手机号
+ * @param string $type email|phone
+ * @return array error 为 0 表示通过
+ */
+function zib_captcha_send_limit_check($to, $type = 'email')
+{
+    $to     = strtolower(trim($to));
+    $option = zib_get_captcha_send_limit_option();
+    $now    = current_time('timestamp');
+    $ip     = zib_get_remote_ip_addr();
+
+    // 发送冷却：同一收件人
+    $cooldown = max(0, (int) $option['cooldown']);
+    if ($cooldown > 0 && $to) {
+        $last = (int) get_transient('zib_captcha_cd_to_' . md5($type . '|' . $to));
+        if ($last > 0) {
+            $remaining = $cooldown - ($now - $last);
+            if ($remaining > 0) {
+                return array(
+                    'error'          => 1,
+                    'remaining_time' => $remaining,
+                    'ys'             => 'danger',
+                    'msg'            => sprintf(__('%s秒后可重新发送', 'zib_language'), $remaining),
+                );
+            }
+        }
+    }
+
+    // 发送冷却：同一 IP
+    if ($cooldown > 0 && !zib_captcha_send_skip_ip_limit($ip)) {
+        $last_ip = (int) get_transient('zib_captcha_cd_ip_' . md5($ip));
+        if ($last_ip > 0) {
+            $remaining = $cooldown - ($now - $last_ip);
+            if ($remaining > 0) {
+                return array(
+                    'error'          => 1,
+                    'remaining_time' => $remaining,
+                    'ys'             => 'danger',
+                    'msg'            => sprintf(__('%s秒后可重新发送', 'zib_language'), $remaining),
+                );
+            }
+        }
+    }
+
+    // 收件人：1 小时内
+    $to_hour_1 = (int) $option['to_hour_1'];
+    if ($to_hour_1 > 0 && $to) {
+        $count = (int) get_transient('zib_captcha_to_h_' . md5($type . '|' . $to));
+        if ($count >= $to_hour_1) {
+            return array('error' => 1, 'ys' => 'danger', 'msg' => __('该号码/邮箱发送过于频繁，请稍后再试', 'zib_language'));
+        }
+    }
+
+    // 收件人：一天内
+    $to_day_1 = (int) $option['to_day_1'];
+    if ($to_day_1 > 0 && $to) {
+        $count = (int) get_transient('zib_captcha_to_d_' . md5($type . '|' . $to));
+        if ($count >= $to_day_1) {
+            return array('error' => 1, 'ys' => 'danger', 'msg' => __('该号码/邮箱今日发送已达上限，请明日再试', 'zib_language'));
+        }
+    }
+
+    // IP：10 分钟内
+    $ip_minutes_10 = (int) $option['ip_minutes_10'];
+    if ($ip_minutes_10 > 0 && !zib_captcha_send_skip_ip_limit($ip)) {
+        $count = (int) get_transient('zib_captcha_ip_m_' . md5($ip));
+        if ($count >= $ip_minutes_10) {
+            return array('error' => 1, 'ys' => 'danger', 'msg' => __('您的操作过于频繁，请10分钟后再试', 'zib_language'));
+        }
+    }
+
+    // IP：一天内
+    $ip_day_1 = (int) $option['ip_day_1'];
+    if ($ip_day_1 > 0 && !zib_captcha_send_skip_ip_limit($ip)) {
+        $count = (int) get_transient('zib_captcha_ip_d_' . md5($ip));
+        if ($count >= $ip_day_1) {
+            return array('error' => 1, 'ys' => 'danger', 'msg' => __('您的验证码发送已达今日上限，请明日再试', 'zib_language'));
+        }
+    }
+
+    return array('error' => 0);
+}
+
+/**
+ * 验证码发送成功后记录防刷计数
+ *
+ * @param string $to 收件人邮箱或手机号
+ * @param string $type email|phone
+ */
+function zib_captcha_send_limit_record($to, $type = 'email')
+{
+    $to     = strtolower(trim($to));
+    $option = zib_get_captcha_send_limit_option();
+    $now    = current_time('timestamp');
+    $ip     = zib_get_remote_ip_addr();
+    $cooldown = max(0, (int) $option['cooldown']);
+
+    if ($cooldown > 0 && $to) {
+        set_transient('zib_captcha_cd_to_' . md5($type . '|' . $to), $now, $cooldown + 30);
+    }
+
+    if ($cooldown > 0 && !zib_captcha_send_skip_ip_limit($ip)) {
+        set_transient('zib_captcha_cd_ip_' . md5($ip), $now, $cooldown + 30);
+    }
+
+    if ($to) {
+        $to_hour_1 = (int) $option['to_hour_1'];
+        if ($to_hour_1 > 0) {
+            $key = 'zib_captcha_to_h_' . md5($type . '|' . $to);
+            set_transient($key, (int) get_transient($key) + 1, HOUR_IN_SECONDS);
+        }
+
+        $to_day_1 = (int) $option['to_day_1'];
+        if ($to_day_1 > 0) {
+            $key = 'zib_captcha_to_d_' . md5($type . '|' . $to);
+            set_transient($key, (int) get_transient($key) + 1, DAY_IN_SECONDS);
+        }
+    }
+
+    if (!zib_captcha_send_skip_ip_limit($ip)) {
+        $ip_minutes_10 = (int) $option['ip_minutes_10'];
+        if ($ip_minutes_10 > 0) {
+            $key = 'zib_captcha_ip_m_' . md5($ip);
+            set_transient($key, (int) get_transient($key) + 1, 10 * MINUTE_IN_SECONDS);
+        }
+
+        $ip_day_1 = (int) $option['ip_day_1'];
+        if ($ip_day_1 > 0) {
+            $key = 'zib_captcha_ip_d_' . md5($ip);
+            set_transient($key, (int) get_transient($key) + 1, DAY_IN_SECONDS);
+        }
+    }
+}
+
 /**发送验证码 */
 function zib_send_captcha($to, $type = 'email')
 {
     @session_start();
+
+    $limit = zib_captcha_send_limit_check($to, $type);
+    if (!empty($limit['error'])) {
+        return $limit;
+    }
+
     $code = zib_get_captcha(6);
     /**保存验证码到session */
     $_SESSION['zib_captcha']         = $code;
     $_SESSION['zib_verification_to'] = $to;
-
-    if (!empty($_SESSION['zib_captcha_time'])) {
-        $time_x = strtotime(current_time('mysql')) - strtotime($_SESSION['zib_captcha_time']);
-        if ($time_x < 60) {
-            //剩余时间
-            return array('error' => 1, 'remaining_time' => (60 - $time_x), 'ys' => 'danger', 'msg' => sprintf(__('%s秒后可重新发送', 'zib_language'), (60 - $time_x)));
-        }
-    }
 
     $_SESSION['zib_captcha_time']        = current_time('mysql');
     $_SESSION['zib_captcha_check_count'] = 1;
@@ -80,6 +247,7 @@ function zib_send_captcha($to, $type = 'email')
                 $result = @wp_mail($to, $title, $message);
             }
             if ($result) {
+                zib_captcha_send_limit_record($to, $type);
                 return array('error' => 0, 'result' => true, 'msg' => __('验证码已发送至您的邮箱', 'zib_language'));
             } else {
                 return array('error' => 1, 'ys' => 'danger', 'msg' => __('验证码发送失败', 'zib_language'));
@@ -88,6 +256,7 @@ function zib_send_captcha($to, $type = 'email')
         case 'phone':
             $result = ZibSMS::send($to, $code);
             if (!empty($result['result'])) {
+                zib_captcha_send_limit_record($to, $type);
                 $result['msg'] = __('验证码短信已发送', 'zib_language');
             }
             return $result;
@@ -1102,3 +1271,11 @@ function zib_ajax_query_posts_lists()
 }
 add_action('wp_ajax_query_posts_lists', 'zib_ajax_query_posts_lists');
 add_action('wp_ajax_nopriv_query_posts_lists', 'zib_ajax_query_posts_lists');
+
+//文章归档页 AJAX 分页
+function zib_ajax_archives_posts_lists()
+{
+    zib_ajax_send_ajaxpager(zib_get_archives_posts_lists());
+}
+add_action('wp_ajax_archives_posts_lists', 'zib_ajax_archives_posts_lists');
+add_action('wp_ajax_nopriv_archives_posts_lists', 'zib_ajax_archives_posts_lists');

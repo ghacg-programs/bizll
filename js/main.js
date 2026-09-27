@@ -2,7 +2,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:40
- * @LastEditTime : 2026-07-01 23:14:15
+ * @LastEditTime : 2026-08-24 12:09:24
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -11,42 +11,6 @@
  */
 
 //libs-插件
-//jQuery.cookie
-jQuery.cookie = function (e, o, t) {
-    if (void 0 === o) {
-        var i = null;
-        if (document.cookie && '' != document.cookie)
-            for (var r = document.cookie.split(';'), n = 0; n < r.length; n++) {
-                var c = jQuery.trim(r[n]);
-                if (c.substring(0, e.length + 1) == e + '=') {
-                    i = decodeURIComponent(c.substring(e.length + 1));
-                    break;
-                }
-            }
-        return i;
-    }
-    (t = t || {}), null === o && ((o = ''), (t.expires = -1));
-    var a = '';
-    if (t.expires && ('number' == typeof t.expires || t.expires.toUTCString)) {
-        var l;
-        'number' == typeof t.expires ? ((l = new Date()), l.setTime(l.getTime() + 24 * t.expires * 60 * 60 * 1e3)) : (l = t.expires), (a = '; expires=' + l.toUTCString());
-    }
-    var u = t.path ? '; path=' + t.path : '',
-        s = t.domain ? '; domain=' + t.domain : '',
-        m = t.secure ? '; secure' : '';
-    document.cookie = [e, '=', encodeURIComponent(o), a, u, s, m].join('');
-};
-var lcs = {
-    get: function (e) {
-        return window.localStorage ? localStorage.getItem(e) : $.cookie(e);
-    },
-    set: function (e, o) {
-        window.localStorage ? (localStorage[e] = o) : $.cookie(e, o);
-    },
-    remove: function (e) {
-        window.localStorage ? localStorage.removeItem(e) : $.cookie(e, '');
-    },
-};
 
 /**
  * 读取 PHP 注入的 JS 国际化文案（语义化 key）

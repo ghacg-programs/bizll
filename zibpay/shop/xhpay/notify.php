@@ -38,6 +38,7 @@ if ($result && $result['return_code'] == 'SUCCESS') {
     $pay  = array(
         'order_num' => $result['out_trade_no'],
         'pay_type'  => $type,
+        'pay_price' => !empty($result['total_fee']) ? $result['total_fee'] / 100 : 0,
         'pay_num'   => $result['order_id'],
     );
     // 更新订单状态

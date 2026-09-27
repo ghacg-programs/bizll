@@ -3,7 +3,7 @@
 * @Author : Qinver
 * @Url : zibll.com
 * @Date : 2025-03-04 11:54:28
- * @LastEditTime : 2026-01-30 22:30:25
+ * @LastEditTime : 2026-08-24 12:17:37
 * @Project : Zibll子比主题
 * @Description : 更优雅的Wordpress主题
 * Copyright (c) 2025 by Qinver, All Rights Reserved.
@@ -265,7 +265,7 @@ function zib_shop_pay_success_modal_notice_footer()
                 setTimeout(function(){
                     $(\'#shop_auto_delivery_notice\').modal({ backdrop: \'static\', show: true, keyboard: false });
                     ' . (!$auto_delivery_notice_lists ? '$.cookie(\'' . $cookie_key . '\', \'\', { path: \'/\', expires: -1 });' : '') . '
-                }, 100);
+                }, 200);
 
                 $(\'.auto-delivery-notice-received\').click(function(){
                     //弹出二次确认

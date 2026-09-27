@@ -105,14 +105,13 @@ add_action('wp_ajax_nopriv_order_details_modal', 'zibpay_ajax_order_details_moda
 //AJAX获取用户提现记录列表
 function zibpay_ajax_rebate_user_withdraw_detail()
 {
-    $user_id = get_current_user_id();
-    if (!$user_id) {
+    $current_id = get_current_user_id();
+    if (!$current_id) {
         return;
     }
 
-    //准备查询参数
-    $user_id = !empty($_REQUEST['user_id']) ? (int) $_REQUEST['user_id'] : $user_id;
-    if ($user_id != $user_id && !zib_current_user_can('view_withdraw_record')) {
+    $user_id = !empty($_REQUEST['user_id']) ? (int) $_REQUEST['user_id'] : $current_id;
+    if ($user_id !== (int) $current_id && !zib_current_user_can('view_withdraw_record')) {
         zib_send_json_error(__('您无权限查看此信息', 'zib_language'));
     }
 

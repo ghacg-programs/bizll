@@ -4,7 +4,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-08-05 17:40:41
- * @LastEditTime : 2026-06-16 22:56:40
+ * @LastEditTime : 2026-08-28 12:54:07
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|工具函数
@@ -26,7 +26,7 @@ function zib_is_wechat_app($exclude = array('wxwork', 'windows', 'mac'))
 
 
     //转小写
-    $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower($_SERVER['HTTP_USER_AGENT'] ?? '') : '';
+    $useragent = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower($_SERVER['HTTP_USER_AGENT']) : '';
 
     if (!$useragent || !strpos($useragent, 'micromessenger')) {
         return false;
@@ -96,7 +96,7 @@ function zib_is_crawler()
         'Become.com'    => 'become.com',
         'Yandex'        => 'yandex',
     );
-    $useragent      = isset($_SERVER['HTTP_USER_AGENT']) ? addslashes(strtolower($_SERVER['HTTP_USER_AGENT'] ?? '')) : '';
+    $useragent      = isset($_SERVER['HTTP_USER_AGENT']) ? addslashes(strtolower($_SERVER['HTTP_USER_AGENT'])) : '';
     $zib_is_crawler = false;
     if ($useragent) {
         foreach ($bots as $name => $lookfor) {
@@ -200,7 +200,7 @@ function zib_is_lazy($key, $default = false)
 
 function zib_get_lazy_attr($key, $src, $class = '', $lazy_src = ZIB_TEMPLATE_DIRECTORY_URI . '/img/thumbnail.svg')
 {
-    return zib_is_lazy($key) ? ' class="lazyload ' . $class . '" src="' . $lazy_src . '" data-src="' . $src . '"' : ' class="' . $class . '" src="' . $src . '"';
+    return zib_is_lazy($key) ? ' class="lazyload ' . $class . '" src="' . esc_url($lazy_src) . '" data-src="' . esc_url($src) . '"' : ' class="' . $class . '" src="' . esc_url($src) . '"';
 }
 
 //为已经添加了图片懒加载的元素移出懒加载的内容
@@ -446,6 +446,8 @@ function zib_get_remote_ip_addr()
         $ip = getenv('REMOTE_ADDR');
     } elseif (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], 'unknown')) {
         $ip = $_SERVER['REMOTE_ADDR'];
+    }else{
+        $ip = '';
     }
     return preg_match('/[\d\.]{7,15}/', $ip, $matches) ? $matches[0] : '';
 }
@@ -528,13 +530,12 @@ function zib_get_geographical_position_by_amap($ip, $key, $Secret_key, $debug = 
 function zib_get_geographical_position_by_pconline($ip, $debug = false)
 {
 
-    //通过太平洋接口获取（接口已强制 https，载荷编码为 GBK）
-    $api_url = 'https://whois.pconline.com.cn/ipJson.jsp?json=true&ip=' . $ip;
+    //通过太平洋接口获取
+    $api_url = 'http://whois.pconline.com.cn/ipJson.jsp?json=true&ip=' . $ip;
 
     $http     = new Yurun\Util\HttpRequest;
     $response = $http->timeout(3000)->get($api_url);
-    //GBK 是 GB2312 的超集，覆盖扩展汉字，避免转码丢字
-    $body     = $response->body('GBK');
+    $body     = $response->body('GB2312');
 
     if (!$body) {
         if ($debug) {
@@ -543,44 +544,17 @@ function zib_get_geographical_position_by_pconline($ip, $debug = false)
         return false;
     }
 
-    //优先 json_decode（接口载荷本身是 JSON 结构），失败再回退正则
-    $province = $city = $district = $nation = '';
-    $body_data = json_decode($body, true);
-    if (is_array($body_data)) {
-        $province = isset($body_data['pro']) ? $body_data['pro'] : '';
-        $city     = isset($body_data['city']) ? $body_data['city'] : '';
-        $district = isset($body_data['region']) ? $body_data['region'] : '';
-        $addr     = isset($body_data['addr']) ? trim((string) $body_data['addr']) : '';
-        //addr 形如「四川省宜宾市 电信」，取空格前地名部分作为 nation
-        if ('' !== $addr) {
-            $addr_parts = preg_split('/\s+/u', $addr, 2);
-            $nation     = isset($addr_parts[0]) ? $addr_parts[0] : '';
-        }
-    } else {
-        preg_match('/"pro":"(.*?)"/', $body, $pro_m);
-        preg_match('/"city":"(.*?)"/', $body, $city_m);
-        preg_match('/"region":"(.*?)"/', $body, $region_m);
-        preg_match('/"addr":"(.*?)(\s)(.*?)"/', $body, $addr_m);
-        $province = !empty($pro_m[1]) ? $pro_m[1] : '';
-        $city     = !empty($city_m[1]) ? $city_m[1] : '';
-        $district = !empty($region_m[1]) ? $region_m[1] : '';
-        $nation   = !empty($addr_m[1]) ? $addr_m[1] : '';
-    }
-
-    //四个字段全空 → 判定获取失败，让上层走"请求失败"分支，避免假成功
-    if ('' === $province && '' === $city && '' === $district && '' === $nation) {
-        if ($debug) {
-            return $body;
-        }
-        return false;
-    }
+    preg_match('/"pro":"(.*?)"/', $body, $pro);
+    preg_match('/"city":"(.*?)"/', $body, $city);
+    preg_match('/"region":"(.*?)"/', $body, $region);
+    preg_match('/"addr":"(.*?)(\s)(.*?)"/', $body, $addr);
 
     $data = array(
         'ip'       => $ip,
-        'nation'   => $nation,
-        'province' => $province,
-        'city'     => $city,
-        'district' => $district,
+        'nation'   => !empty($addr[1]) ? $addr[1] : '',
+        'province' => !empty($pro[1]) ? $pro[1] : '',
+        'city'     => !empty($city[1]) ? $city[1] : '',
+        'district' => !empty($region[1]) ? $region[1] : '',
         'sdk'      => 'pconline',
     );
 

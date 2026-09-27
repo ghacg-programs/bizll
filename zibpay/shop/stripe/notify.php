@@ -72,7 +72,7 @@ if (empty($parsed['pay_num'])) {
     $parsed['pay_num'] = !empty($session['id']) ? $session['id'] : $parsed['order_num'];
 }
 
-$result = zibpay_stripe_payment_order($parsed['order_num'], $parsed['pay_num']);
+$result = zibpay_stripe_payment_order($parsed['order_num'], $parsed['pay_num'], isset($parsed['pay_price']) ? $parsed['pay_price'] : 0);
 if ($result === false) {
     http_response_code(400);
     echo 'fail';

@@ -54,7 +54,7 @@ if ($is_rest) {
             $parsed['pay_num'] = $result['id'];
         }
         if (!empty($parsed['order_num']) && !empty($parsed['pay_num'])) {
-            zibpay_paypal_rest_payment_order($parsed['order_num'], $parsed['pay_num']);
+            zibpay_paypal_rest_payment_order($parsed['order_num'], $parsed['pay_num'], isset($parsed['pay_price']) ? $parsed['pay_price'] : 0);
         }
     }
 
@@ -83,6 +83,7 @@ if (isset($request['ACK']) && $request['ACK'] == 'Success' && isset($request['TO
     $pay_order_data = array(
         'order_num' => $order_num,
         'pay_type'  => 'paypal',
+        'pay_price' => isset($order['AMT']) ? $order['AMT'] : (isset($request['AMT']) ? $request['AMT'] : 0),
         'pay_num'   => $pay_num,
     );
 

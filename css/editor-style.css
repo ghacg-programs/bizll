@@ -1,7 +1,8 @@
-body {
-    font-size: 15px;
-    line-height: 1.4em;
-    font-family: 'microsoft yahei';
+body,
+.is-root-container {
+    font-size: 16px;
+    line-height: 1.5;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     color: #555;
     --z-focus-color: #f04494;
 }
@@ -1027,10 +1028,8 @@ figure.wp-block-image:not(.wp-block) {
     margin: 0 !important;
 }
 
-
 .carousel.seamless-img.full-container {
-    padding:10px 0 0 0;
-
+    padding: 10px 0 0 0;
 }
 
 .panel .isshow {

@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:38
- * @LastEditTime : 2026-04-25 19:25:22
+ * @LastEditTime : 2026-08-26 22:16:30
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -80,4 +80,120 @@ function zib_get_page_content_style($post_id = '')
 
     $style = zib_get_post_meta($post_id, 'page_content_style', true);
     return $style;
+}
+
+/**
+ * 文章归档页每页条数
+ *
+ * @return int
+ */
+function zib_get_archives_posts_per_page()
+{
+    return (int) apply_filters('zib_archives_posts_per_page', 100);
+}
+
+/**
+ * 获取文章归档列表（按月分组，AJAX 分页）
+ *
+ * @param int $paged 页码
+ * @return string
+ */
+function zib_get_archives_posts_lists($paged = 0)
+{
+    $paged       = $paged ? (int) $paged : zib_get_the_paged();
+    $ice_perpage = zib_get_archives_posts_per_page();
+    $counts      = wp_count_posts('post');
+    $count_all   = isset($counts->publish) ? (int) $counts->publish : 0;
+
+    $query = new WP_Query(array(
+        'post_type'              => 'post',
+        'post_status'            => 'publish',
+        'posts_per_page'         => $ice_perpage,
+        'paged'                  => $paged,
+        'orderby'                => 'date',
+        'order'                  => 'DESC',
+        'ignore_sticky_posts'    => true,
+        'no_found_rows'          => true,
+        'update_post_term_cache' => false,
+    ));
+
+    if (!$query->have_posts()) {
+        wp_reset_postdata();
+        if (1 === $paged) {
+            return zib_get_ajax_null();
+        }
+        return '<div class="ajax-pag hide"><div class="next-page ajax-next"><a href="#"></a></div></div>';
+    }
+
+    $previous_year  = 0;
+    $previous_month = 0;
+    if ($paged > 1) {
+        $prev_posts = get_posts(array(
+            'numberposts'         => 1,
+            'offset'              => ($paged - 1) * $ice_perpage - 1,
+            'orderby'             => 'date',
+            'order'               => 'DESC',
+            'post_status'         => 'publish',
+            'post_type'           => 'post',
+            'ignore_sticky_posts' => true,
+            'no_found_rows'       => true,
+        ));
+        if (!empty($prev_posts[0])) {
+            $previous_year  = (int) mysql2date('Y', $prev_posts[0]->post_date);
+            $previous_month = (int) mysql2date('n', $prev_posts[0]->post_date);
+        }
+    }
+
+    $html    = '';
+    $group   = '';
+    $ul_open = false;
+
+    while ($query->have_posts()) {
+        $query->the_post();
+        global $post;
+
+        $year  = (int) mysql2date('Y', $post->post_date);
+        $month = (int) mysql2date('n', $post->post_date);
+
+        if ($year !== $previous_year || $month !== $previous_month) {
+            if ($ul_open) {
+                $html .= '<div class="ajax-item zib-widget">' . $group . '</ul></div>';
+                $group   = '';
+                $ul_open = false;
+            }
+
+            $group .= '<h4 class="text-center title-h-center">' . get_the_time('Y年M') . '</h4>';
+            $group .= '<ul class="list-inline">';
+            $ul_open = true;
+        } elseif (!$ul_open) {
+            $group .= '<ul class="list-inline">';
+            $ul_open = true;
+        }
+
+        $previous_year  = $year;
+        $previous_month = $month;
+
+        $comment_html = '';
+        if ((int) $post->comment_count) {
+            $comment_html = '<span class="muted-2-color ml6">' . zib_get_svg('comment') . (int) $post->comment_count . '</span>';
+        }
+
+        $like      = get_post_meta($post->ID, 'like', true);
+        $like_html = $like ? '<span class="muted-2-color ml6">' . zib_get_svg('like') . $like . '</span>' : '';
+
+        $group .= '<li class="author-set-left muted-color"><time>' . get_the_time('j') . '日</time></li>';
+        $group .= '<li class="author-set-right"><a href="' . esc_url(get_permalink()) . '">' . get_the_title() . ' </a>';
+        $group .= '<span class="muted-2-color ml6">' . zib_get_svg('view') . get_post_view_count('', '') . '</span>';
+        $group .= $comment_html . $like_html . '</li>';
+    }
+
+    if ($ul_open) {
+        $html .= '<div class="ajax-item zib-widget">' . $group . '</ul></div>';
+    }
+
+    wp_reset_postdata();
+
+    $html .= zib_get_ajax_next_paginate($count_all, $paged, $ice_perpage, zib_get_admin_ajax_url('archives_posts_lists'));
+
+    return $html;
 }

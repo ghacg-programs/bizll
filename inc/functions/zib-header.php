@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:38
- * @LastEditTime : 2026-05-15 13:32:20
+ * @LastEditTime : 2026-08-25 13:35:24
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -285,7 +285,7 @@ function zib_header_user_box()
         $href .= '<div class="flex jsa header-user-href">';
         $href .= '<a href="javascript:;" class="signin-loader"><div class="badg mb6 toggle-radius c-blue">' . zib_get_svg('user', '50 0 924 924') . '</div><div class="c-blue">' . __('登录', 'zib_language') . '</div></a>';
         $href .= !zib_is_close_signup() ? '<a href="javascript:;" class="signup-loader"><div class="badg mb6 toggle-radius c-green">' . zib_get_svg('signup') . '</div><div class="c-green">' . __('注册', 'zib_language') . '</div></a>' : '';
-        $href .= '<a target="_blank" rel="nofollow" href="' . add_query_arg('redirect_to', esc_url(zib_get_current_url()), zib_get_sign_url('resetpassword')) . '"><div class="badg mb6 toggle-radius c-purple">' . zib_get_svg('user_rp') . '</div><div class="c-purple">' . __('找回密码', 'zib_language') . '</div></a>';
+        $href .= '<a target="_blank" rel="nofollow" href="' . add_query_arg('redirect_to', esc_url(remove_query_arg('redirect_to', zib_get_current_url())), zib_get_sign_url('resetpassword')) . '"><div class="badg mb6 toggle-radius c-purple">' . zib_get_svg('user_rp') . '</div><div class="c-purple">' . __('找回密码', 'zib_language') . '</div></a>';
         $href .= '</div>';
 
         $con .= '<div class="text-center">' . $href . '</div>';
@@ -704,6 +704,9 @@ class zib_walker_nav_menu extends Walker_Nav_Menu
 
     public function display_element($element, &$children_elements, $max_depth, $depth, $args, &$output)
     {
+        if (!zib_menu_item_match_show_policy($element->ID)) {
+            return;
+        }
 
         if (!empty($element->menu_item_parent) && in_array($element->menu_item_parent, self::$submenu_ids)) {
             return '';
@@ -914,6 +917,38 @@ function zib_menu_pz($id, $key = '', $default = '')
     }
 
     return zib_get_array_value($options[$id], $key, $default);
+}
+
+/**
+ * 判断菜单项是否满足显示限制
+ *
+ * @param int $menu_item_id 菜单项 ID
+ * @return bool
+ */
+function zib_menu_item_match_show_policy($menu_item_id)
+{
+    $policy = zib_menu_pz($menu_item_id, 'show_policy');
+    if (!$policy) {
+        return true;
+    }
+
+    $user_id = get_current_user_id();
+
+    switch ($policy) {
+        case 'signin':
+            return (bool) $user_id;
+
+        case 'vip':
+            return $user_id && zib_get_user_vip_level($user_id);
+
+        case 'vip_2':
+            return $user_id && 2 == zib_get_user_vip_level($user_id);
+
+        case 'auth':
+            return $user_id && zib_is_user_auth($user_id);
+    }
+
+    return true;
 }
 
 /**

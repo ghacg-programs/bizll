@@ -48,6 +48,7 @@ if ($verify_result && $_GET['trade_status'] == 'TRADE_SUCCESS') {
     $pay = array(
         'order_num' => $_GET['out_trade_no'],
         'pay_type'  => 'epay_' . $_GET['type'],
+        'pay_price' => $_GET['money'],
         'pay_num'   => $_GET['trade_no'],
     );
     // 更新订单状态

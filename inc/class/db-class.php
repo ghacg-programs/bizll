@@ -1499,3 +1499,37 @@ class zib_db
         return $this;
     }
 }
+
+/**
+ * Zibll 数据库静态门面。
+ *
+ * 当前非加密数据库实现提供 zib_db 查询构建器，但缺少原版运行链中的
+ * ZibDB 静态入口。通过 __callStatic() 将 ZibDB::table()、ZibDB::name()
+ * 等调用转发给新的 zib_db 实例，不引入原版加密文件。
+ */
+if (!class_exists('ZibDB', false)) {
+    class ZibDB
+    {
+        /**
+         * 转发静态数据库入口。
+         *
+         * @param string $name      方法名称。
+         * @param array  $arguments 方法参数。
+         * @return mixed
+         *
+         * @throws BadMethodCallException 方法不存在时抛出异常。
+         */
+        public static function __callStatic($name, $arguments)
+        {
+            $database = new zib_db();
+
+            if (!is_callable(array($database, $name))) {
+                throw new BadMethodCallException(
+                    sprintf('Call to undefined ZibDB method: %s()', $name)
+                );
+            }
+
+            return call_user_func_array(array($database, $name), $arguments);
+        }
+    }
+}

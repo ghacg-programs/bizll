@@ -169,7 +169,7 @@ if ($oauth_bind_html) {
     $logout_url  = wp_logout_url(home_url());
     $oauth_new   = get_user_meta($user_id, 'oauth_new', true);
     $logout_url  = $oauth_new ? wp_nonce_url($logout_url, 'del-out', '_delout') : $logout_url;
-    $logout_text = $oauth_new ? ' 注销账户' : ' 退出登录';
+    $logout_text = $oauth_new ? __('注销账户', 'zib_language') : __('退出登录', 'zib_language');
     $bind_html   = '';
     $bind_html .= '<div class="box-body">';
     $bind_html .= $user_bind_tab;

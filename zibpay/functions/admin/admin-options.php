@@ -18,7 +18,6 @@ function zibpay_add_settings_menu()
         'zibpay_page',
         'zibpay_page',
         $icon,
-        56
     );
 
     // 子菜单
@@ -42,7 +41,9 @@ function zibpay_add_settings_menu()
 }
 add_action('admin_menu', 'zibpay_add_settings_menu');
 
-//旧版后台页面 slug 兼容入口
+/**
+ * 注册旧版后台页面 slug 兼容层
+ */
 function zibpay_register_legacy_admin_pages()
 {
     $legacy_pages = array(
@@ -58,7 +59,7 @@ function zibpay_register_legacy_admin_pages()
     );
 
     foreach ($legacy_pages as $slug => $args) {
-        add_submenu_page(null, $args[0], $args[0], 'manage_options', $slug, $args[1]);
+        add_submenu_page('', $args[0], $args[0], 'manage_options', $slug, $args[1]);
     }
 }
 add_action('admin_menu', 'zibpay_register_legacy_admin_pages', 20);
@@ -150,6 +151,57 @@ function zibpay_sync_settings_submenu()
 }
 add_action('admin_menu', 'zibpay_sync_settings_submenu', 999);
 
+// =================== 关键修复：在 admin-header.php 输出前设置 $title ===================
+/**
+ * 确保所有 ZibPay 管理页面的 $title 不为 null
+ * 钩子：admin_init （在 admin-header.php 包含之前执行）
+ */
+function zibpay_ensure_admin_title() {
+    global $title, $pagenow;
+    
+    // 如果标题已经设置且不为空，则跳过（避免重复赋值）
+    if (!empty($title)) {
+        return;
+    }
+    
+    // 映射 slug 到页面标题（包括所有正式子菜单和旧版兼容 slug）
+    $title_map = array(
+        // 正式子菜单
+        'zibpay_page'            => 'zibll商城中心',
+        'zibpay_order'           => '订单明细',
+        'zibpay_shipping'        => '发货与物流',
+        'zibpay_after_sale'      => '售后管理',
+        'zibpay_card'            => '卡密管理',
+        'zibpay_coupon'          => '优惠码管理',
+        'zibpay_withdraw'        => '提现记录',
+        'zibpay_product'         => '商品明细',
+        'zibpay_old_order'       => '订单明细(旧版)',
+        // 旧版兼容 slug
+        'zibpay_charge_card_page' => '卡密管理',
+        'zibpay_coupon_page'      => '优惠码管理',
+        'zibpay_withdraw_page'    => '提现记录',
+        'zibpay_product_page'     => '商品明细',
+        'zibpay_balance_page'     => '商品明细',
+        'zibpay_rebate_page'      => '返佣明细',
+        'zibpay_income_page'      => '分成明细',
+        'zibpay_old_order_page'   => '订单明细(旧版)',
+        'zibpay_order_page'       => '订单明细',
+    );
+    
+    // 检查当前 page 参数
+    if (isset($_GET['page']) && isset($title_map[$_GET['page']])) {
+        $title = $title_map[$_GET['page']];
+        return;
+    }
+    
+    // 处理会员管理页面：users.php?zibpay_member=1
+    if ($pagenow === 'users.php' && isset($_GET['zibpay_member'])) {
+        $title = '会员管理';
+        return;
+    }
+}
+add_action('admin_init', 'zibpay_ensure_admin_title', 1); // 最高优先级，确保尽早执行
+
 // =================== 页面回调 ===================
 
 // 主页面 — Vue SPA (shop.php)
@@ -159,6 +211,7 @@ function zibpay_page()
     $fallback = dirname(dirname(__DIR__)) . '/page/index.php';
 
     if (_pz('shop_s') && file_exists($page)) {
+        zibpay_admin_page_start(true);
         include $page;
         return;
     }
@@ -177,6 +230,7 @@ function zibpay_order_page_callback()
 {
     $page = dirname(dirname(__DIR__)) . '/page/shop.php';
     if (file_exists($page)) {
+        zibpay_admin_page_start(true);
         include $page;
         echo '<script>if(window.location.hash !== "#/order") window.location.hash = "#/order";</script>';
     }
@@ -187,6 +241,7 @@ function zibpay_shipping_page()
 {
     $page = dirname(dirname(__DIR__)) . '/page/shop.php';
     if (file_exists($page)) {
+        zibpay_admin_page_start(true);
         include $page;
         echo '<script>if(window.location.hash !== "#/shipping") window.location.hash = "#/shipping";</script>';
     }
@@ -197,6 +252,7 @@ function zibpay_after_sale_page()
 {
     $page = dirname(dirname(__DIR__)) . '/page/shop.php';
     if (file_exists($page)) {
+        zibpay_admin_page_start(true);
         include $page;
         echo '<script>if(window.location.hash !== "#/after-sale") window.location.hash = "#/after-sale";</script>';
     }
@@ -214,13 +270,13 @@ function _zibpay_load_old_page($filename)
     echo '</div>';
 }
 
-function zibpay_card_page_callback() { _zibpay_load_old_page('charge-card.php'); }
-function zibpay_coupon_page_callback() { _zibpay_load_old_page('coupon.php'); }
-function zibpay_withdraw_page_callback() { _zibpay_load_old_page('withdraw.php'); }
-function zibpay_product_page_callback() { _zibpay_load_old_page('product.php'); }
-function zibpay_balance_page_callback() { zibpay_product_page_callback(); }
-function zibpay_rebate_page_callback() { _zibpay_load_old_page('rebate.php'); }
-function zibpay_income_page_callback() { _zibpay_load_old_page('income.php'); }
+function zibpay_card_page_callback()      { _zibpay_load_old_page('charge-card.php'); }
+function zibpay_coupon_page_callback()    { _zibpay_load_old_page('coupon.php'); }
+function zibpay_withdraw_page_callback()  { _zibpay_load_old_page('withdraw.php'); }
+function zibpay_product_page_callback()   { _zibpay_load_old_page('product.php'); }
+function zibpay_balance_page_callback()   { zibpay_product_page_callback(); }
+function zibpay_rebate_page_callback()    { _zibpay_load_old_page('rebate.php'); }
+function zibpay_income_page_callback()    { _zibpay_load_old_page('income.php'); }
 function zibpay_old_order_page_callback() { _zibpay_load_old_page('order.php'); }
 
 // =================== 资源加载 ===================

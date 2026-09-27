@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:36
- * @LastEditTime : 2026-06-18 12:17:21
+ * @LastEditTime : 2026-08-25 13:29:32
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
  * @Email         : 770349780@qq.com
@@ -271,9 +271,16 @@ add_action('wp_loaded', 'zib_replace_wp_login_add_action');
 //登录时，直接返回前台
 function zib_replace_wp_login_is_logged_in()
 {
+
+    //排除的action
+    $exclude_actions = array(
+        'logout',
+        'postpass',
+    );
+
     if (_pz('replace_wp_login') && is_user_logged_in()) {
         $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
-        if ($action === 'logout') {
+        if (in_array($action, $exclude_actions)) {
             return;
         }
 
@@ -865,7 +872,7 @@ function zib_brush_limit_post($post_data)
     $brush_limit_post = _pz('brush_limit_post');
     $minutes_10       = isset($brush_limit_post['minutes_10']) ? (int) $brush_limit_post['minutes_10'] : 0;
     $day_1            = isset($brush_limit_post['day_1']) ? (int) $brush_limit_post['day_1'] : 0;
-    $sql_prefix       = $wpdb->prepare("SELECT COUNT( * ) FROM {$wpdb->posts} WHERE post_type in ('post','plate','forum_post') AND post_author=%d", (int)$post_author); //前缀
+    $sql_prefix       = "SELECT COUNT( * ) FROM {$wpdb->posts} WHERE post_type in ('post','plate','forum_post') AND post_author=$post_author"; //前缀
 
     if ($minutes_10) {
         $date_query_args = array(
@@ -972,8 +979,7 @@ function zib_brush_limit_register($errors, $sanitized_user_login, $user_email)
     }
 
     global $wpdb;
-    $sql_prefix = "SELECT COUNT( * ) FROM {$wpdb->users} INNER JOIN {$wpdb->usermeta} ON ( {$wpdb->users}.ID = {$wpdb->usermeta}.user_id ) WHERE ( {$wpdb->usermeta}.meta_key = 'register_ip' AND {$wpdb->usermeta}.meta_value = %s )"; //前缀
-    $sql_prefix = $wpdb->prepare($sql_prefix, $ip_addr);
+    $sql_prefix = "SELECT COUNT( * ) FROM {$wpdb->users} INNER JOIN {$wpdb->usermeta} ON ( {$wpdb->users}.ID = {$wpdb->usermeta}.user_id ) WHERE ( {$wpdb->usermeta}.meta_key = 'register_ip' AND {$wpdb->usermeta}.meta_value = '$ip_addr' )"; //前缀
 
     if ($minutes_10) {
         $date_query_args = array(
@@ -1024,7 +1030,7 @@ function zib_brush_limit_upload($file)
     $brush_limit_post = _pz('brush_limit_upload');
     $minutes_10       = isset($brush_limit_post['minutes_10']) ? (int) $brush_limit_post['minutes_10'] : 0;
     $day_1            = isset($brush_limit_post['day_1']) ? (int) $brush_limit_post['day_1'] : 0;
-    $sql_prefix       = $wpdb->prepare("SELECT COUNT( * ) FROM {$wpdb->posts} WHERE post_type = %s AND post_author=%d", $post_type, (int)$post_author); //前缀
+    $sql_prefix       = "SELECT COUNT( * ) FROM {$wpdb->posts} WHERE post_type = '$post_type' AND post_author=$post_author"; //前缀
 
     if ($minutes_10) {
         $date_query_args = array(
@@ -1158,7 +1164,7 @@ if (_pz('no_categoty') && !function_exists('no_category_base_refresh_rules')) {
 //颜色转换
 function hex_to_rgba($hex, $a)
 {
-    $hex = str_replace('#', '', (string)$hex);
+    $hex = str_replace('#', '', $hex);
     if (strlen($hex) == 3) {
         $r = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
         $g = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
@@ -1515,7 +1521,9 @@ function get_post_comment_count($before = null, $after = null, $post_id = 0)
     if (null === $after) {
         $after = ']';
     }
-    if (!comments_open() || _pz('close_comments')) {
+
+    global $post;
+    if (!zib_comment_is_show($post)) {
         return;
     }
 

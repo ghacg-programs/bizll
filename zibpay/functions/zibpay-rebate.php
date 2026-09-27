@@ -262,7 +262,7 @@ function zibpay_user_rebate_type_format($array)
     if (in_array('all', $array) || !empty($array['all'])) {
         return array('all');
     }
-    if (count($array ?? []) == count($array ?? [], 1)) {
+    if (count($array) == count($array, 1)) {
         return $array;
     }
 
@@ -331,7 +331,7 @@ function zibpay_get_rebate_statistics_totime($time_type = 'all', $status = 'all'
 
     global $wpdb;
     $thismonth_time_where = zib_get_time_where_sql($time_type, 'pay_time');
-    $status_where         = $status === 'all' ? '' : " and rebate_status = " . (int)$status;
+    $status_where         = $status === 'all' ? '' : " and rebate_status = $status";
     $db_data              = (array) $wpdb->get_row("SELECT count(*) as count,SUM(rebate_price) as sum FROM $wpdb->zibpay_order WHERE rebate_price > 0 and `status` = 1 and pay_type != 'points' and $thismonth_time_where $status_where");
 
     $data = array(

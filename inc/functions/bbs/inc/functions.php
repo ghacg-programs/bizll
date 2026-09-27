@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-08-05 20:25:29
- * @LastEditTime : 2026-05-05 21:25:21
+ * @LastEditTime : 2026-07-14 15:25:13
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|论坛系统|工具函数
@@ -580,7 +580,7 @@ function zib_bbs_updata_is_hot($post_id = 0)
 
         //开始设置热门版块
         $plate_cat = get_the_terms($plate_id, 'plate_cat');
-        if (isset($plate_cat[0])) {
+        if (!is_wp_error($plate_cat) && isset($plate_cat[0])) {
 
             $is_hot       = 0;
             $plate_cat_id = $plate_cat[0]->term_id;

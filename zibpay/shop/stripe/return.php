@@ -53,7 +53,7 @@ if (!is_wp_error($session) && !empty($session['payment_status']) && $session['pa
         $parsed['pay_num'] = $session['id'];
     }
     if (!empty($parsed['order_num']) && !empty($parsed['pay_num'])) {
-        zibpay_stripe_payment_order($parsed['order_num'], $parsed['pay_num']);
+        zibpay_stripe_payment_order($parsed['order_num'], $parsed['pay_num'], isset($parsed['pay_price']) ? $parsed['pay_price'] : 0);
     }
 }
 

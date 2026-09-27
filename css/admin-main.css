@@ -2,7 +2,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:40
- * @LastEditTime : 2026-06-22 20:43:23
+ * @LastEditTime : 2026-08-25 20:25:45
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|后台UI-CSS
@@ -679,6 +679,10 @@ code {
 }
 
 /**---------------------通知结束-------------**/
+#wpadminbar #wp-admin-bar-my-account.with-avatar>.ab-empty-item img, #wpadminbar #wp-admin-bar-my-account.with-avatar>a img{
+    height: 20px;
+    width: 20px;
+}
 
 /**模态框------*/
 .zib-modal-backdrop,

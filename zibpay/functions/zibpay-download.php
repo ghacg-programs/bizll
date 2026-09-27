@@ -24,7 +24,7 @@ function zibpay_get_user_free_downloaded_number($user_id = '')
     $time = current_time('Y-m-d');
 
     $user_mate        = zib_get_user_meta($user_id, 'pay_down_number', true);
-    $user_down_number = !empty($user_mate[$time]) ? count($user_mate[$time] ?? []) : 0;
+    $user_down_number = !empty($user_mate[$time]) ? count($user_mate[$time]) : 0;
 
     return $user_down_number;
 }
@@ -449,7 +449,7 @@ function zibpay_get_post_down_array($post_id = '')
     if (is_array($pay_mate['pay_download'])) {
         return $pay_mate['pay_download'];
     }
-    $down     = explode("\r\n", (string)($pay_mate['pay_download'] ?? ''));
+    $down     = explode("\r\n", $pay_mate['pay_download']);
     $down_obj = array();
     if (empty($down)) {
         return array();

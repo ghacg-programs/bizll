@@ -21,15 +21,16 @@ if (!is_user_logged_in()) {
 $order_url = admin_url('admin.php?page=zibpay_product_page');
 $desc_url  = $order_url;
 
+global $wpdb;
+
 $WHERE            = '';
-$WHERE_order_type = !empty($_GET['order_type']) ? $_GET['order_type'] : false;
+$WHERE_order_type = !empty($_GET['order_type']) ? (int) $_GET['order_type'] : 0;
 if ($WHERE_order_type) {
-    $WHERE = "WHERE
-     `order_type` = $WHERE_order_type and `post_id` > 0";
+    $WHERE = $wpdb->prepare("WHERE
+     `order_type` = %d and `post_id` > 0", $WHERE_order_type);
     $desc_url = $order_url . '&order_type=' . $WHERE_order_type;
 }
 
-global $wpdb;
 //统计数据
 $total_trade = COUNT($wpdb->get_col("SELECT distinct post_id FROM $wpdb->zibpay_order $WHERE"));
 //分页计算

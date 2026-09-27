@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:37
- * @LastEditTime : 2026-06-17 13:34:56
+ * @LastEditTime : 2026-08-25 13:34:37
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -56,7 +56,7 @@ function zib_win_var()
     $imgbox_play            = (($wp_is_mobile && in_array('m_s', $imagelightbox_play_s)) || (!$wp_is_mobile && in_array('pc_s', $imagelightbox_play_s)));
     $imgbox_down            = (($wp_is_mobile && in_array('m_s', $imagelightbox_down_s)) || (!$wp_is_mobile && in_array('pc_s', $imagelightbox_down_s)));
     $current_url            = zib_get_current_url();
-    $sign_url               = add_query_arg('redirect_to', urlencode($current_url), zib_get_sign_url('signin'));
+    $sign_url               = add_query_arg('redirect_to', urlencode(remove_query_arg('redirect_to', $current_url)), zib_get_sign_url('signin'));
     $split_minimum_size     = (int) _pz('split_minimum_size', 10);
     $split_minimum_size     = $split_minimum_size < 4 ? 4 : $split_minimum_size;
 
@@ -520,7 +520,7 @@ function zib_get_single_footer_tabbar($btn)
     $btn = '';
 
     //评论
-    $comments_open = (comments_open($post_id) && !_pz('close_comments'));
+    $comments_open = zib_comment_is_show($post);
 
     if (_pz('post_like_s')) {
         $btn .= zib_get_post_like('tabbar-item single-action-tabbar');

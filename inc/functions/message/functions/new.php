@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-11-11 17:11:44
- * @LastEditTime : 2026-03-11 12:17:11
+ * @LastEditTime : 2026-08-25 12:15:41
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -25,6 +25,8 @@ function zib_newmsg_comment_approved($comment)
         return;
     }
 
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
     $_link      = get_comment_link($comment->comment_ID);
     $post       = get_post($comment->comment_post_ID);
     $post_title = zib_str_cut($post->post_title, 0, 16, '...');
@@ -61,6 +63,8 @@ function zib_newmsg_comment_approved($comment)
 
     wp_new_comment_notify_postauthor($comment->comment_ID);
     zib_update_comment_meta($comment->comment_ID, 'is_notify', true);
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 /**用户评论通过审核之后，如果是回复给其它人，则给其他人发送消息以及邮件 */
@@ -88,9 +92,12 @@ function zib_newmsg_comment_approved_toparent($comment)
 
         //自己是作者不通知
         if ($parent_comment->user_id == $post->post_author) {
-            //    return;
+            return;
         }
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $post_title = zib_str_cut($post->post_title, 0, 16, '...');
     $post_link  = get_permalink($parent_comment->comment_post_ID);
@@ -152,12 +159,14 @@ function zib_newmsg_comment_approved_toparent($comment)
 
         /**判断邮箱状态 */
         if (is_email($email) && !stristr($email, '@no')) {
-            $title     = sprintf(__('您发表的评论已有新的回复:[%s]', 'zib_language'), $post_title);
+            $title = sprintf(__('您发表的评论已有新的回复:[%s]', 'zib_language'), $post_title);
             /**发送邮件 */
             @wp_mail($email, $title, $message);
         }
     }
 
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //用户投稿后向管理员发送邮件
@@ -176,6 +185,9 @@ function zib_email_newpost_contribution_to_admin($post)
     if (get_post_meta($post->ID, 'contribution_msg_to_admin', true)) {
         return false;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $blog_name = get_bloginfo('name');
     $_link     = admin_url('/edit.php?post_status=pending&post_type=post');
@@ -213,6 +225,9 @@ function zib_email_newpost_contribution_to_admin($post)
     if (_pz('email_newpost_contribution_to_admin', true)) {
         zib_mail_to_admin($title, $message);
     }
+
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 /**当投稿的文章从草稿状态变更到已发布时 */
@@ -235,6 +250,10 @@ function zib_newmsg_pending_to_publish($post)
     if (in_array('administrator', $udata->roles) || in_array('roles', $udata->roles)) {
         return;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
+
     $_link      = get_permalink($post->ID);
     $post_title = zib_str_cut($post->post_title, 0, 20, '...');
 
@@ -263,6 +282,9 @@ function zib_newmsg_pending_to_publish($post)
 
     //创建新消息
     ZibMsg::add($msg_arge);
+
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //帖子被删除后通知作者
@@ -285,6 +307,9 @@ function zib_newmsg_trashed_post($post)
     if ($user_id == get_current_user_id()) {
         return;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $msg        = !empty($_REQUEST['msg']) ? trim(strip_tags($_REQUEST['msg'])) : '';
     $post_title = zib_str_cut($post->post_title, 0, 20, '...');
@@ -310,6 +335,9 @@ function zib_newmsg_trashed_post($post)
 
     //创建新消息
     ZibMsg::add($msg_arge);
+
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //帖子或版块驳回后通知作者
@@ -333,6 +361,9 @@ function zib_newmsg_publish_to_pending($post)
     if ($user_id == get_current_user_id()) {
         return;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $_link      = get_permalink($post->ID);
     $post_title = zib_str_cut($post->post_title, 0, 20, '...');
@@ -364,6 +395,9 @@ function zib_newmsg_publish_to_pending($post)
 
     //创建新消息
     ZibMsg::add($msg_arge);
+
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 /**新的链接需要管理员审核 */
@@ -373,6 +407,9 @@ function zib_newmsg_links_submit($data)
     if (!_pz('message_s', true) || $data['link_visible'] === 'Y') {
         return;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $linkdata = array(
         'link_name'        => esc_attr($data['link_name']),
@@ -405,11 +442,16 @@ function zib_newmsg_links_submit($data)
     );
     //创建新消息
     ZibMsg::add($msg_arge);
+
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //文章有新的评论后给文章作者发通知的内容过滤
 function zib_comment_notification_text_filter($notify_message, $comment_id)
 {
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
     $comment         = get_comment($comment_id);
     $post_id         = $comment->comment_post_ID;
     $post            = get_post($post_id);
@@ -428,6 +470,8 @@ function zib_comment_notification_text_filter($notify_message, $comment_id)
     $notify_message .= __('您可以点击下方按钮查看此评论', 'zib_language') . '<br>';
     $notify_message .= '<a target="_blank" style="margin-top: 20px;padding:5px 20px" class="but jb-blue" href="' . esc_url($_link) . '">' . __('查看评论', 'zib_language') . '</a>' . '<br>';
 
+    //恢复到原来的语言
+    zib_restore_previous_locale();
     return $notify_message;
 }
 add_filter('comment_notification_text', 'zib_comment_notification_text_filter', 10, 2);
@@ -444,6 +488,9 @@ function zib_newmsg_new_comment($maybe_notify, $comment_id)
     if ($post->post_author == $comment->user_id) {
         return;
     }
+
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
     $notify_message = zib_comment_notification_text_filter('', $comment);
     $post_title     = zib_str_cut($post->post_title, 0, 20, '...');
     $title          = sprintf(__('有新的评论:[%s]', 'zib_language'), $post_title);
@@ -473,6 +520,8 @@ function zib_newmsg_new_comment($maybe_notify, $comment_id)
     );
     zib_wechat_template_send($post->post_author, 'comment_to_postauthor', $wechat_template_data, get_comment_link($comment));
 
+    //恢复到原来的语言
+    zib_restore_previous_locale();
     return $maybe_notify;
 }
 
@@ -480,6 +529,8 @@ function zib_newmsg_new_comment($maybe_notify, $comment_id)
 add_filter('comment_moderation_text', 'zib_newmsg_moderation_notify', 10, 2);
 function zib_newmsg_moderation_notify($notify_message, $comment_id)
 {
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $comment    = get_comment($comment_id);
     $post_id    = $comment->comment_post_ID;
@@ -516,6 +567,8 @@ function zib_newmsg_moderation_notify($notify_message, $comment_id)
         //创建新消息
         ZibMsg::add($msg_arge);
     }
+    //恢复到原来的语言
+    zib_restore_previous_locale();
     return $notify_message;
 }
 
@@ -750,9 +803,9 @@ function zib_newmsg_bind_phone($user_id, $new_phone, $old_phone)
 add_action('zib_user_bind_email', 'zib_newmsg_bind_email', 99, 3);
 function zib_newmsg_bind_email($user_id, $new, $old)
 {
-    $udata     = get_userdata($user_id);
-    $new       = zib_get_hide_email($new);
-    $old       = $old ? zib_get_hide_email($old) : false;
+    $udata = get_userdata($user_id);
+    $new   = zib_get_hide_email($new);
+    $old   = $old ? zib_get_hide_email($old) : false;
 
     $title       = $old ? __('邮箱绑定成功', 'zib_language') : __('绑定邮箱修改成功', 'zib_language');
     $action_text = $old ? sprintf(__('由%s修改为%s', 'zib_language'), $old, $new) . '<br><br>' : sprintf(__('绑定邮箱：%s', 'zib_language'), $new);

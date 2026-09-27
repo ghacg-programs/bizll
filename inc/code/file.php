@@ -1,26 +1,32 @@
 <?php
 /**
- * ZibDB 静态代理类
- * 将 ZibDB::method() 静态调用代理到 zib_db 实例
- * v9.0: zib_db 已在 db-class.php 中完整实现
+ * ZibFileAut - File verification stub
+ * All file checks return true
  */
-class ZibDB
+class ZibFileAut
 {
-    public static function name($name)
+    public static function __callStatic($name, $arguments)
     {
-        $instance = new zib_db();
-        return $instance->name($name);
+        return true;
     }
 
-    public static function table($table, $alias = null)
+    public static function check()
     {
-        $instance = new zib_db();
-        return $instance->table($table, $alias);
+        return true;
     }
 
-    public static function __callStatic($method, $args)
+    public static function verify()
     {
-        $instance = new zib_db();
-        return $instance->$method(...$args);
+        return true;
+    }
+
+    public static function check_file($file = '')
+    {
+        return true;
+    }
+
+    public static function get_file_hash($file = '')
+    {
+        return md5($file);
     }
 }

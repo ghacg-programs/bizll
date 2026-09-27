@@ -975,7 +975,7 @@ function zib_user_report_process($msg_id, $user_id, $desc = '')
             return;
         }
         $title   = __('您提交的举报信息已处理完成，感谢您的反馈', 'zib_language');
-        $msg_con = '您好！' . zib_get_user_name_link($user_id) . '<br>';
+        $msg_con = sprintf(__('您好！%s', 'zib_language'), zib_get_user_name_link($user_id)) . '<br>';
         $msg_con .= $title . '<br>';
         $msg_con .= $desc . '<br>';
         $msg_con .= __('如有其它疑问请与客服联系', 'zib_language') . '<br />';
@@ -1011,8 +1011,8 @@ function zib_user_report_process($msg_id, $user_id, $desc = '')
             //发送微信模板消息
             $wechat_template_data = array(
                 'time'   => $msg_db->create_time,
-                'reason' => !empty($msg_db->meta['reason']) ? $msg_db->meta['reason'] : '不良信息举报',
-                'desc'   => $desc ?: '您提交的举报信息已处理完成，感谢您的反馈',
+                'reason' => !empty($msg_db->meta['reason']) ? $msg_db->meta['reason'] : __('不良信息举报', 'zib_language'),
+                'desc'   => $desc ?: __('您提交的举报信息已处理完成，感谢您的反馈', 'zib_language'),
             );
             zib_wechat_template_send($user_id, 'report_process', $wechat_template_data);
         }

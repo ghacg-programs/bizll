@@ -91,7 +91,7 @@ $vue_data = [
     ],
     'colors'                      => ['#ff4747', '#ee5307', '#1e8608', '#1a8a65', '#0c9cc8', '#086ae8', '#3353fd', '#4641e8', '#853bf2', '#e94df7', '#ca2b7d', '#d7354c', '#ff4747', '#8e24ac'],
 ];
-zibpay_admin_page_start(true);
+zibpay_admin_page_start();
 zibpay_admin_page_vue_data_filter($vue_data);
 
 ?>

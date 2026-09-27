@@ -131,7 +131,7 @@ function zibpay_get_user_income_post_lists($user_id)
         $lists .= zib_get_ajax_next_paginate($posts_query->found_posts, $paged, $ice_perpage, $ajax_url);
     } else {
         if ($paged == 1) {
-            $lists = zib_get_ajax_null(__('暂无付费内容', 'zib_language'), 40, null);
+            $lists = zib_get_ajax_null(__('暂无付费内容', 'zib_language'), 40, 'null.svg');
         }
     }
     wp_reset_query();
@@ -527,7 +527,7 @@ function zibpay_get_income_statistics_totime($time_type = 'all', $status = 'all'
 
     global $wpdb;
     $thismonth_time_where = zib_get_time_where_sql($time_type, 'pay_time');
-    $status_where         = $status === 'all' ? '' : " and income_status = " . (int)$status;
+    $status_where         = $status === 'all' ? '' : " and income_status = $status";
     $db_data              = (array) $wpdb->get_row("SELECT count(*) as count,SUM(income_price) as sum FROM $wpdb->zibpay_order WHERE income_price > 0 and `status` = 1 and pay_type != 'points' and $thismonth_time_where $status_where");
 
     $data = array(

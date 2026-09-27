@@ -150,6 +150,7 @@ function zib_csf_custom_icons($icons)
             'zibsvg-merchant-color',
             'zibsvg-google-color',
             'zibsvg-apple',
+            'zibsvg-douyin',
             'zibsvg-medal-color',
             'zibsvg-points-color',
             'zibsvg-book-color',

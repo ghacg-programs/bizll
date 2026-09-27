@@ -42,6 +42,7 @@ if ($checkSign && $_POST['return_code'] == 1 && $_POST['attach'] == 'zibpay_payj
     $pay  = array(
         'order_num' => $_POST['out_trade_no'],
         'pay_type'  => $type,
+        'pay_price' => !empty($_POST['total_fee']) ? $_POST['total_fee'] / 100 : 0,
         'pay_num'   => $_POST['payjs_order_id'],
     );
     // 更新订单状态

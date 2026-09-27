@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-11-11 11:41:45
- * @LastEditTime : 2026-06-15 22:24:08
+ * @LastEditTime : 2026-08-25 20:16:00
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -1862,7 +1862,7 @@ class CFS_Module
                 'title'                  => __('会员商品', 'zib_language'),
                 'subtitle'               => _pz('pay_user_vip_' . $level . '_name') . __('的商品选项', 'zib_language'),
                 'type'                   => 'group',
-                'accordion_title_prefix' => __('价格：￥', 'zib_language'),
+                'accordion_title_prefix' => __('价格：', 'zib_language'),
                 'max'                    => 8,
                 'button_title'           => __('添加会员商品', 'zib_language'),
                 'class'                  => 'compact',

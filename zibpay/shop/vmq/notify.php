@@ -40,6 +40,7 @@ if ($verify_result) { //验证成功
     $pay = array(
         'order_num' => $_GET['payId'],
         'pay_type'  => $type,
+        'pay_price' => $_GET['reallyPrice'],
         'pay_num'   => $_GET['payId'],
     );
     // 更新订单状态

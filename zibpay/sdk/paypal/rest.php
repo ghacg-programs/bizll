@@ -176,6 +176,7 @@ class PayPalRest
     {
         $order_num = '';
         $pay_num   = '';
+        $pay_price = 0;
 
         if (!empty($data['custom_id'])) {
             $order_num = $data['custom_id'];
@@ -183,6 +184,10 @@ class PayPalRest
 
         if (!empty($data['id'])) {
             $pay_num = $data['id'];
+        }
+
+        if (!empty($data['amount']['value'])) {
+            $pay_price = $data['amount']['value'];
         }
 
         if (!empty($data['purchase_units']) && is_array($data['purchase_units'])) {
@@ -199,11 +204,18 @@ class PayPalRest
             if (!$order_num && !empty($unit['payments']['captures'][0]['custom_id'])) {
                 $order_num = $unit['payments']['captures'][0]['custom_id'];
             }
+            if (!$pay_price && !empty($unit['amount']['value'])) {
+                $pay_price = $unit['amount']['value'];
+            }
+            if (!$pay_price && !empty($unit['payments']['captures'][0]['amount']['value'])) {
+                $pay_price = $unit['payments']['captures'][0]['amount']['value'];
+            }
         }
 
         return array(
             'order_num' => $order_num,
             'pay_num'   => $pay_num,
+            'pay_price' => $pay_price,
         );
     }
 
@@ -328,11 +340,12 @@ class PayPalRest
 /**
  * PayPal REST 入账
  *
- * @param string $order_num
- * @param string $pay_num
- * @return array|false
+     * @param string $order_num
+     * @param string $pay_num
+     * @param float|null $pay_price
+     * @return array|false
  */
-function zibpay_paypal_rest_payment_order($order_num, $pay_num)
+function zibpay_paypal_rest_payment_order($order_num, $pay_num, $pay_price = null)
 {
     if (!$order_num || !$pay_num) {
         return false;
@@ -343,6 +356,9 @@ function zibpay_paypal_rest_payment_order($order_num, $pay_num)
         'pay_type'  => 'paypal',
         'pay_num'   => $pay_num,
     );
+    if ($pay_price !== null) {
+        $pay_order_data['pay_price'] = $pay_price;
+    }
 
     return ZibPay::payment_order($pay_order_data);
 }

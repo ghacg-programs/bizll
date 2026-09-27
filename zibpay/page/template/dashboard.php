@@ -383,7 +383,7 @@ zibpay_admin_page_vue_data_filter($vue_data);
                 <el-tooltip placement="top" content="<?php echo esc_attr__('不含积分订单、余额充值订单的数据', 'zib_language'); ?>">
                     <div class="flex ab xx">
                         <div class="em2x"><span class="unit px12"><?php echo esc_html(zibpay_get_pay_mark()); ?></span>{{ item.data }}</div>
-                        <div class="mt6"><span class="opacity8 px12"><?php echo esc_html__('环比', 'zib_language'); ?></span><span :class="item.ratio > 0 ? 'c-blue' : (item.ratio < 0 ? 'c-red' : 'opacity5')"><i class="dashicons" v-if="item.ratio != 0" :class="item.ratio > 0 ? ' dashicons-arrow-up' : ' dashicons-arrow-down'"></i>{{item.ratio}}%</span></div>
+                        <div class="mt6"><span class="opacity8 px12"><?php echo esc_html__('同比', 'zib_language'); ?></span><span :class="item.ratio > 0 ? 'c-blue' : 'c-red'"><i class="dashicons" :class="item.ratio > 0 ? ' dashicons-arrow-up' : ' dashicons-arrow-down'"></i>{{item.ratio}}%</span></div>
                     </div>
                 </el-tooltip>
             </div>

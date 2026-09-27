@@ -365,16 +365,44 @@ class zib_shop
             'shop_product',
             array(
                 'labels'              => array(
-                    'name'          => $this->shop_name,
-                    'singular_name' => $this->product_name,
-                    'all_items'     => sprintf(__('所有%s', 'zib_language'), $this->product_name),
-                    'add_new'       => sprintf(__('创建新%s', 'zib_language'), $this->product_name),
-                    'add_new_item'  => sprintf(__('创建新%s', 'zib_language'), $this->product_name),
-                    'edit'          => sprintf(__('编辑%s', 'zib_language'), $this->product_name),
-                    'edit_item'     => sprintf(__('编辑%s', 'zib_language'), $this->product_name),
-                    'new_item'      => sprintf(__('新%s', 'zib_language'), $this->product_name),
-                    'view'          => sprintf(__('查看%s', 'zib_language'), $this->product_name),
-                    'view_item'     => sprintf(__('[%1$s]查看%2$s', 'zib_language'), $this->shop_name, $this->product_name),
+                    'name'                     => $this->shop_name,
+                    'singular_name'            => $this->product_name,
+                    'menu_name'                => $this->shop_name,
+                    'name_admin_bar'           => $this->product_name,
+                    'all_items'                => sprintf(__('所有%s', 'zib_language'), $this->product_name),
+                    'add_new'                  => sprintf(__('创建新%s', 'zib_language'), $this->product_name),
+                    'add_new_item'             => sprintf(__('创建新%s', 'zib_language'), $this->product_name),
+                    'edit'                     => sprintf(__('编辑%s', 'zib_language'), $this->product_name),
+                    'edit_item'                => sprintf(__('编辑%s', 'zib_language'), $this->product_name),
+                    'new_item'                 => sprintf(__('新%s', 'zib_language'), $this->product_name),
+                    'view'                     => sprintf(__('查看%s', 'zib_language'), $this->product_name),
+                    'view_item'                => sprintf(__('查看%s', 'zib_language'), $this->product_name),
+                    'view_items'               => sprintf(__('查看%s', 'zib_language'), $this->product_name),
+                    'search_items'             => sprintf(__('搜索%s', 'zib_language'), $this->product_name),
+                    'not_found'                => sprintf(__('未找到%s', 'zib_language'), $this->product_name),
+                    'not_found_in_trash'       => sprintf(__('回收站中未找到%s', 'zib_language'), $this->product_name),
+                    'parent_item_colon'        => sprintf(__('父级%s：', 'zib_language'), $this->product_name),
+                    'archives'                 => sprintf(__('%s归档', 'zib_language'), $this->product_name),
+                    'attributes'               => sprintf(__('%s属性', 'zib_language'), $this->product_name),
+                    'insert_into_item'         => sprintf(__('插入到%s', 'zib_language'), $this->product_name),
+                    'uploaded_to_this_item'    => sprintf(__('上传到此%s', 'zib_language'), $this->product_name),
+                    'featured_image'           => sprintf(__('%s图片', 'zib_language'), $this->product_name),
+                    'set_featured_image'       => sprintf(__('设置%s图片', 'zib_language'), $this->product_name),
+                    'remove_featured_image'    => sprintf(__('移除%s图片', 'zib_language'), $this->product_name),
+                    'use_featured_image'       => sprintf(__('作为%s图片', 'zib_language'), $this->product_name),
+                    'filter_items_list'        => sprintf(__('筛选%s列表', 'zib_language'), $this->product_name),
+                    'filter_by_date'           => __('按日期筛选', 'zib_language'),
+                    'items_list_navigation'    => sprintf(__('%s列表导航', 'zib_language'), $this->product_name),
+                    'items_list'               => sprintf(__('%s列表', 'zib_language'), $this->product_name),
+                    'item_published'           => sprintf(__('%s已发布', 'zib_language'), $this->product_name),
+                    'item_published_privately' => sprintf(__('%s已私密发布', 'zib_language'), $this->product_name),
+                    'item_reverted_to_draft'   => sprintf(__('%s已恢复为草稿', 'zib_language'), $this->product_name),
+                    'item_trashed'             => sprintf(__('%s已移至回收站', 'zib_language'), $this->product_name),
+                    'item_scheduled'           => sprintf(__('%s已定时发布', 'zib_language'), $this->product_name),
+                    'item_updated'             => sprintf(__('%s已更新', 'zib_language'), $this->product_name),
+                    'item_link'                => sprintf(__('%s链接', 'zib_language'), $this->product_name),
+                    'item_link_description'    => sprintf(__('指向%s的链接。', 'zib_language'), $this->product_name),
+                    'template_name'            => sprintf(__('单个%s', 'zib_language'), $this->product_name),
                 ),
                 'supports'            => array(
                     'title',
@@ -404,17 +432,32 @@ class zib_shop
         //分类
         $taxonomy_args = [
             'labels'            => [
-                'name'              => __($this->product_name . $this->cat_name, 'zib_language'),
-                'singular_name'     => __($this->product_name . $this->cat_name, 'zib_language'),
-                'search_items'      => __('搜索' . $this->product_name . $this->cat_name, 'zib_language'),
-                'all_items'         => __('所有' . $this->product_name . $this->cat_name, 'zib_language'),
-                'parent_item'       => __('父' . $this->product_name . $this->cat_name, 'zib_language'),
-                'parent_item_colon' => __('父' . $this->product_name . $this->cat_name . ':', 'zib_language'),
-                'edit_item'         => __('编辑' . $this->product_name . $this->cat_name, 'zib_language'),
-                'update_item'       => __('更新' . $this->product_name . $this->cat_name, 'zib_language'),
-                'add_new_item'      => __('添加新' . $this->product_name . $this->cat_name, 'zib_language'),
-                'new_item_name'     => __('新' . $this->product_name . $this->cat_name . '名称', 'zib_language'),
-                'menu_name'         => __($this->product_name . $this->cat_name, 'zib_language'),
+                'name'                  => __('商品分类', 'zib_language'),
+                'singular_name'         => __('商品分类', 'zib_language'),
+                'menu_name'             => __('商品分类', 'zib_language'),
+                'search_items'          => __('搜索商品分类', 'zib_language'),
+                'all_items'             => __('所有商品分类', 'zib_language'),
+                'parent_item'           => __('父级商品分类', 'zib_language'),
+                'parent_item_colon'     => __('父级商品分类：', 'zib_language'),
+                'name_field_description'   => __('名称会显示在站点前台。', 'zib_language'),
+                'slug_field_description'   => __('别名是用于 URL 的友好名称，通常由小写字母、数字和连字符组成。', 'zib_language'),
+                'parent_field_description' => __('指定父级可创建层级关系。', 'zib_language'),
+                'desc_field_description'   => __('描述默认不会明显显示，部分主题可能会使用。', 'zib_language'),
+                'edit_item'             => __('编辑商品分类', 'zib_language'),
+                'view_item'             => __('查看商品分类', 'zib_language'),
+                'update_item'           => __('更新商品分类', 'zib_language'),
+                'add_new_item'          => __('添加新商品分类', 'zib_language'),
+                'new_item_name'         => __('新商品分类名称', 'zib_language'),
+                'not_found'             => __('未找到商品分类', 'zib_language'),
+                'no_terms'              => __('暂无商品分类', 'zib_language'),
+                'filter_by_item'        => __('按商品分类筛选', 'zib_language'),
+                'items_list_navigation' => __('商品分类列表导航', 'zib_language'),
+                'items_list'            => __('商品分类列表', 'zib_language'),
+                'most_used'             => __('常用商品分类', 'zib_language'),
+                'back_to_items'         => __('返回商品分类', 'zib_language'),
+                'item_link'             => __('商品分类链接', 'zib_language'),
+                'item_link_description' => __('指向商品分类的链接。', 'zib_language'),
+                'template_name'         => __('商品分类归档', 'zib_language'),
             ],
             'capabilities'      => array(
                 'manage_terms' => 'manage_categories',
@@ -423,7 +466,7 @@ class zib_shop
                 'assign_terms' => 'assign_categories',
             ),
             // 'meta_box_cb'        => true, //普通编辑器侧边栏编辑的回调函数，如果为false,则不在普通编辑器侧边栏显示，保持默认请注销
-            'description'       => sprintf(__('%1$s%2$s', 'zib_language'), $this->product_name, $this->cat_name),
+            'description'       => __('商品分类', 'zib_language'),
             'hierarchical'      => true, //允许嵌套
             'show_ui'           => true, //后台权限
             'show_in_menu'      => $this->is_admin_can, //后台权限
@@ -437,17 +480,35 @@ class zib_shop
         //优惠活动，折扣
         $taxonomy_args = [
             'labels'             => [
-                'name'              => __($this->product_name . $this->discount_name, 'zib_language'),
-                'singular_name'     => __($this->product_name . $this->discount_name, 'zib_language'),
-                'search_items'      => __('搜索' . $this->discount_name, 'zib_language'),
-                'all_items'         => __('所有' . $this->discount_name, 'zib_language'),
-                'parent_item'       => __('父' . $this->discount_name, 'zib_language'),
-                'parent_item_colon' => __('父' . $this->discount_name . ':', 'zib_language'),
-                'edit_item'         => __('编辑' . $this->discount_name, 'zib_language'),
-                'update_item'       => __('更新' . $this->discount_name, 'zib_language'),
-                'add_new_item'      => __('添加新' . $this->discount_name, 'zib_language'),
-                'new_item_name'     => __('新' . $this->discount_name . '名称', 'zib_language'),
-                'menu_name'         => __($this->discount_name, 'zib_language'),
+                'name'                       => __('优惠活动', 'zib_language'),
+                'singular_name'              => __('优惠活动', 'zib_language'),
+                'menu_name'                  => __('优惠活动', 'zib_language'),
+                'search_items'               => __('搜索优惠活动', 'zib_language'),
+                'popular_items'              => __('热门优惠活动', 'zib_language'),
+                'all_items'                  => __('所有优惠活动', 'zib_language'),
+                'parent_item'                => __('父级优惠活动', 'zib_language'),
+                'parent_item_colon'          => __('父级优惠活动：', 'zib_language'),
+                'name_field_description'     => __('名称会显示在站点前台。', 'zib_language'),
+                'slug_field_description'     => __('别名是用于 URL 的友好名称，通常由小写字母、数字和连字符组成。', 'zib_language'),
+                'desc_field_description'     => __('描述默认不会明显显示，部分主题可能会使用。', 'zib_language'),
+                'edit_item'                  => __('编辑优惠活动', 'zib_language'),
+                'view_item'                  => __('查看优惠活动', 'zib_language'),
+                'update_item'                => __('更新优惠活动', 'zib_language'),
+                'add_new_item'               => __('添加新优惠活动', 'zib_language'),
+                'new_item_name'              => __('新优惠活动名称', 'zib_language'),
+                'separate_items_with_commas' => __('用逗号分隔优惠活动', 'zib_language'),
+                'add_or_remove_items'        => __('添加或移除优惠活动', 'zib_language'),
+                'choose_from_most_used'      => __('从常用优惠活动中选择', 'zib_language'),
+                'not_found'                  => __('未找到优惠活动', 'zib_language'),
+                'no_terms'                   => __('暂无优惠活动', 'zib_language'),
+                'filter_by_item'             => __('按优惠活动筛选', 'zib_language'),
+                'items_list_navigation'      => __('优惠活动列表导航', 'zib_language'),
+                'items_list'                 => __('优惠活动列表', 'zib_language'),
+                'most_used'                  => __('常用优惠活动', 'zib_language'),
+                'back_to_items'              => __('返回优惠活动', 'zib_language'),
+                'item_link'                  => __('优惠活动链接', 'zib_language'),
+                'item_link_description'      => __('指向优惠活动的链接。', 'zib_language'),
+                'template_name'              => __('优惠活动归档', 'zib_language'),
             ],
             'capabilities'       => array(
                 'manage_terms' => 'manage_categories',
@@ -455,7 +516,7 @@ class zib_shop
                 'delete_terms' => 'manage_categories',
                 'assign_terms' => 'assign_categories',
             ),
-            'description'        => sprintf(__('%1$s%2$s', 'zib_language'), $this->product_name, $this->discount_name),
+            'description'        => __('优惠活动', 'zib_language'),
             'hierarchical'       => false, //不允许嵌套
             'show_in_rest'       => false, //不在古腾堡编辑器中显示
             'meta_box_cb'        => false, //不在普通编辑器侧边栏显示
@@ -471,17 +532,35 @@ class zib_shop
         //标签
         $taxonomy_args = [
             'labels'             => [
-                'name'              => __($this->product_name . $this->tag_name, 'zib_language'),
-                'singular_name'     => __($this->product_name . $this->tag_name, 'zib_language'),
-                'search_items'      => __('搜索' . $this->tag_name, 'zib_language'),
-                'all_items'         => __('所有' . $this->tag_name, 'zib_language'),
-                'parent_item'       => __('父' . $this->tag_name, 'zib_language'),
-                'parent_item_colon' => __('父' . $this->tag_name . ':', 'zib_language'),
-                'edit_item'         => __('编辑' . $this->tag_name, 'zib_language'),
-                'update_item'       => __('更新' . $this->tag_name, 'zib_language'),
-                'add_new_item'      => __('添加新' . $this->tag_name, 'zib_language'),
-                'new_item_name'     => __('新' . $this->tag_name . '名称', 'zib_language'),
-                'menu_name'         => __($this->tag_name, 'zib_language'),
+                'name'                       => __('特色标签', 'zib_language'),
+                'singular_name'              => __('特色标签', 'zib_language'),
+                'menu_name'                  => __('特色标签', 'zib_language'),
+                'search_items'               => __('搜索特色标签', 'zib_language'),
+                'popular_items'              => __('热门特色标签', 'zib_language'),
+                'all_items'                  => __('所有特色标签', 'zib_language'),
+                'parent_item'                => __('父级特色标签', 'zib_language'),
+                'parent_item_colon'          => __('父级特色标签：', 'zib_language'),
+                'name_field_description'     => __('名称会显示在站点前台。', 'zib_language'),
+                'slug_field_description'     => __('别名是用于 URL 的友好名称，通常由小写字母、数字和连字符组成。', 'zib_language'),
+                'desc_field_description'     => __('描述默认不会明显显示，部分主题可能会使用。', 'zib_language'),
+                'edit_item'                  => __('编辑特色标签', 'zib_language'),
+                'view_item'                  => __('查看特色标签', 'zib_language'),
+                'update_item'                => __('更新特色标签', 'zib_language'),
+                'add_new_item'               => __('添加新特色标签', 'zib_language'),
+                'new_item_name'              => __('新特色标签名称', 'zib_language'),
+                'separate_items_with_commas' => __('用逗号分隔特色标签', 'zib_language'),
+                'add_or_remove_items'        => __('添加或移除特色标签', 'zib_language'),
+                'choose_from_most_used'      => __('从常用特色标签中选择', 'zib_language'),
+                'not_found'                  => __('未找到特色标签', 'zib_language'),
+                'no_terms'                   => __('暂无特色标签', 'zib_language'),
+                'filter_by_item'             => __('按特色标签筛选', 'zib_language'),
+                'items_list_navigation'      => __('特色标签列表导航', 'zib_language'),
+                'items_list'                 => __('特色标签列表', 'zib_language'),
+                'most_used'                  => __('常用特色标签', 'zib_language'),
+                'back_to_items'              => __('返回特色标签', 'zib_language'),
+                'item_link'                  => __('特色标签链接', 'zib_language'),
+                'item_link_description'      => __('指向特色标签的链接。', 'zib_language'),
+                'template_name'              => __('特色标签归档', 'zib_language'),
             ],
             'capabilities'       => array(
                 'manage_terms' => 'manage_categories',
@@ -489,7 +568,7 @@ class zib_shop
                 'delete_terms' => 'manage_categories',
                 'assign_terms' => 'assign_categories',
             ),
-            'description'        => sprintf(__('%1$s%2$s', 'zib_language'), $this->product_name, $this->tag_name),
+            'description'        => __('特色标签', 'zib_language'),
             'hierarchical'       => false, //不允许嵌套
             'show_in_rest'       => true, //古腾堡编辑器中显示
             'show_in_quick_edit' => true, //快速编辑中显示
@@ -769,8 +848,7 @@ class zib_shop
     public function comments_columns($columns)
     {
         $columns['response_2'] = $columns['response'];
-        //已用 response_2 替代原 response 列，移除原列避免重复列 + 每行重复渲染
-        unset($columns['response']);
+        //   unset($columns['response']);
         return $columns;
     }
 
@@ -778,10 +856,10 @@ class zib_shop
     {
         switch ($column) {
             case 'response_2':
-                //复用页面正在渲染的全局 list table，避免 new WP_Comments_List_Table() 在构造时重复注册 per-row filter，导致作者列头像逐行叠加
                 global $wp_list_table;
-                if ($wp_list_table instanceof WP_Comments_List_Table) {
-                    $wp_list_table->column_response($comment_id);
+
+                if ( $wp_list_table instanceof WP_Comments_List_Table ) {
+                    $wp_list_table->column_response( $comment_id );
                 }
 
                 break;

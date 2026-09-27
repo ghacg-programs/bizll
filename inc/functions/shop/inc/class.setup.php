@@ -1,65 +1,134 @@
 <?php
-
+/**
+ * zib_shop_setup - Shop module setup class (local replacement)
+ * Delegates to $shop (zib_shop instance) methods defined in class.init.php
+ */
 class zib_shop_setup
 {
-    public $shop = null;
+    private $shop = null;
 
-    public function __construct($shop_instance = null)
+    public function __construct($shop)
     {
-        $this->shop = $shop_instance;
-
-        if (!$this->shop || !$this->shop->s) {
-            return;
-        }
-
-        // Register post types and taxonomies
-        add_action('init', array($this->shop, 'register_post_type'));
-        add_action('init', array($this->shop, 'register_post_statuses'));
-        add_action('init', array($this->shop, 'add_rewrite_rule'));
-        add_filter('query_vars', array($this->shop, 'query_vars'));
-
-        add_action('saved_term', array($this->shop, 'initialization_term_meta'), 10, 4);
-        add_action('save_post', array($this->shop, 'initialization_posts_meta'), 10, 3);
-
-        add_action('template_redirect', array($this->shop, 'template_redirect'));
-        add_action('pre_get_posts', array($this->shop, 'main_post_query'));
-        add_filter('redirect_canonical', array($this->shop, 'redirect_canonical'));
-        add_filter('post_type_link', array($this->shop, 'post_type_link'), 10, 2);
-
-        add_action('pre_get_posts', array($this->shop, 'admin_post_query'), 999);
-        add_action('admin_menu', array($this->shop, 'admin_menu_separator'));
-
-        // Admin columns
-        add_filter('manage_shop_product_posts_columns', array($this->shop, 'product_columns'));
-        add_action('manage_shop_product_posts_custom_column', array($this->shop, 'product_custom_column'), 10, 2);
-
-        add_filter('manage_users_columns', array($this->shop, 'users_columns'), 11);
-        add_filter('manage_users_custom_column', array($this->shop, 'users_custom_column'), 10, 3);
-
-        // Taxonomy columns
-        add_filter('manage_edit-shop_cat_columns', array($this->shop, 'cat_columns'));
-        add_filter('manage_shop_cat_custom_column', array($this->shop, 'cat_custom_column'), 10, 3);
-
-        add_filter('manage_edit-shop_tag_columns', array($this->shop, 'tag_columns'));
-        add_filter('manage_shop_tag_custom_column', array($this->shop, 'tag_custom_column'), 10, 3);
-
-        add_filter('manage_edit-shop_discount_columns', array($this->shop, 'discount_columns'));
-        add_filter('manage_shop_discount_custom_column', array($this->shop, 'discount_custom_column'), 10, 3);
-
-        // Comment columns for product reviews
-        if (is_admin()) {
-            add_filter('manage_edit-comments_columns', array($this->shop, 'comments_columns'));
-            add_action('manage_comments_custom_column', array($this->shop, 'comments_custom_column'), 10, 2);
-        }
+        $this->shop = $shop;
+        $this->setup($shop);
     }
 
-    // Fallback for any missing method calls
-    public function __call($name, $arguments)
+    public static function isok($code = '')
     {
         return true;
     }
 
-    public static function __callStatic($name, $arguments)
+    public function tool()
+    {
+        return true;
+    }
+
+    public function ajax()
+    {
+    }
+
+    public function aut()
+    {
+        return true;
+    }
+
+    public function admin_action()
+    {
+        if (!$this->shop || !$this->shop->s) {
+            return;
+        }
+
+        // Admin columns for shop products
+        add_filter('manage_shop_product_posts_columns', array($this->shop, 'product_columns'));
+        add_action('manage_shop_product_posts_custom_column', array($this->shop, 'product_custom_column'), 10, 2);
+
+        // Category columns
+        add_filter('manage_edit-shop_cat_columns', array($this->shop, 'cat_columns'));
+        add_filter('manage_shop_cat_custom_column', array($this->shop, 'cat_custom_column'), 10, 3);
+
+        // Tag columns
+        add_filter('manage_edit-shop_tag_columns', array($this->shop, 'tag_columns'));
+        add_filter('manage_shop_tag_custom_column', array($this->shop, 'tag_custom_column'), 10, 3);
+
+        // Discount columns
+        add_filter('manage_edit-shop_discount_columns', array($this->shop, 'discount_columns'));
+        add_filter('manage_shop_discount_custom_column', array($this->shop, 'discount_custom_column'), 10, 3);
+
+        // Admin post query
+        add_action('pre_get_posts', array($this->shop, 'admin_post_query'));
+
+        // Admin menu separator
+        add_action('admin_menu', array($this->shop, 'admin_menu_separator'), 99);
+
+        // Post meta initialization
+        add_action('wp_insert_post', array($this->shop, 'initialization_posts_meta'), 10, 3);
+        add_action('created_term', array($this->shop, 'initialization_term_meta'), 10, 4);
+
+        // Comments columns for shop
+        add_filter('manage_edit-comments_columns', array($this->shop, 'comments_columns'));
+        add_action('manage_comments_custom_column', array($this->shop, 'comments_custom_column'), 10, 2);
+        add_action('current_screen', array($this->shop, 'manage_comments_nav'));
+    }
+
+    public function setup($shop)
+    {
+        if (!$shop) {
+            return;
+        }
+
+        // Register post type and taxonomies via $shop->register_post_type() in class.init.php
+        $shop->register_post_type();
+
+        if ($shop->s) {
+            // Main query hooks
+            add_action('pre_get_posts', array($shop, 'main_post_query'));
+
+            // Rewrite rules
+            add_action('init', array($shop, 'add_rewrite_rule'));
+
+            // Post type link filter (URL rewriting)
+            add_filter('post_type_link', array($shop, 'post_type_link'), 10, 2);
+
+            // Query vars
+            add_filter('query_vars', array($shop, 'query_vars'));
+
+            // Redirect canonical
+            add_filter('redirect_canonical', array($shop, 'redirect_canonical'));
+
+            // Template redirect for custom pages
+            add_action('template_redirect', array($shop, 'template_redirect'));
+        }
+
+        // Admin hooks
+        if (is_admin()) {
+            $this->admin_action();
+
+            if ($shop->s) {
+                // 修复：仅在后台评论列表且 post_type 为 shop_product 时过滤评论查询
+                add_filter('comments_list_table_query_args', function($args) use ($shop) {
+                    // 检查是否为后台评论页面且目标 post_type 为 shop_product
+                    if (is_admin() && function_exists('get_current_screen')) {
+                        $screen = get_current_screen();
+                        if ($screen && $screen->id === 'edit-comments' && isset($_GET['post_type']) && $_GET['post_type'] === 'shop_product') {
+                            // 调用原始方法，仅在该条件下生效
+                            return $shop->comments_list_table_query_args($args);
+                        }
+                    }
+                    // 其他情况保持原参数不变
+                    return $args;
+                }, 10, 1);
+            }
+        }
+    }
+}
+
+function zib_shop_get_aut_time_int($data = '')
+{
+    return 0;
+}
+
+if (!function_exists('zib_admin_aut_add_action')) {
+    function zib_admin_aut_add_action()
     {
         return true;
     }

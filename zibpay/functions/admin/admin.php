@@ -1757,7 +1757,7 @@ function zibpay_get_admin_dashboard_data()
 
     $_all                 = (array) $wpdb->get_row("SELECT SUM(rebate_price) as rebate,SUM(income_price) as income  FROM $wpdb->zibpay_order WHERE  `status` = 1");
     $thismonth_time_where = zib_get_time_where_sql('thismonth', 'pay_time');
-    $_thismonth           = (array) $wpdb->get_row("SELECT SUM(rebate_price) as rebate,SUM(income_price) as income FROM $wpdb->zibpay_order WHERE  `status` = 1 and " . $thismonth_time_where);
+    $_thismonth           = (array) $wpdb->get_row("SELECT SUM(rebate_price) as rebate,SUM(income_price) as income FROM $wpdb->zibpay_order WHERE  `status` = 1 and $thismonth_time_where");
 
     $rebate = array(
         'all'       => isset($_all['rebate']) ? floatval($_all['rebate']) : 0,

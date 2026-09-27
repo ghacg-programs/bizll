@@ -11,12 +11,12 @@
  * @Remind        : 使用盗版主题会存在各种未知风险。支持正版，从我做起！
  */
 
-$post_id = (int)(get_query_var('pay_download') ?: (!empty($_GET['post_id']) ? $_GET['post_id'] : 0));
+$post_id = get_query_var('pay_download') ?: (!empty($_GET['post_id']) ? $_GET['post_id'] : 0);
 if (!isset($_GET['down_id']) || !$post_id) {
     wp_safe_redirect(home_url());
     exit;
 }
-$down_id = sanitize_text_field($_GET['down_id']);
+$down_id = $_GET['down_id'];
 
 //安全验证
 if (_pz('pay_type_option', true, 'down_verify_nonce') && (!isset($_GET['key']) || !wp_verify_nonce($_GET['key'], 'pay_down'))) {

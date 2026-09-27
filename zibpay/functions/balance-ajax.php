@@ -55,7 +55,7 @@ function zibpay_ajax_transfer_user_search()
 {
 
     $type = !empty($_REQUEST['type']) ? $_REQUEST['type'] : 'points';
-    $s    = !empty($_POST['s']) ? strip_tags(trim($_POST['s'] ?? '')) : '';
+    $s    = !empty($_POST['s']) ? strip_tags(trim($_POST['s'])) : '';
 
     $lists       = '';
     $exclude     = array(get_current_user_id()); //排除自己

@@ -1,4 +1,7 @@
 <?php
+/**
+ * ZibPay AJAX class stub
+ */
 
 if (!class_exists('ZibPayAjax')) {
     class ZibPayAjax

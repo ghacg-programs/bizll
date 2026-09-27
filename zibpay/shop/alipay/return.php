@@ -3,7 +3,7 @@
  * @Author: Qinver
  * @Url: zibll.com
  * @Date: 2021-10-14 13:54:18
- * @LastEditTime : 2025-07-31 19:08:49
+ * @LastEditTime : 2026-08-26 13:32:34
  */
 
 /**
@@ -14,18 +14,19 @@ header('Content-type:text/html; Charset=utf-8');
 
 ob_start();
 require_once dirname(__FILE__) . '/../../../../../../wp-load.php';
+require_once dirname(__FILE__) . '/../../class/alipay-check.php';
 ob_end_clean();
 
 $return_url = !empty($_REQUEST['return_url']) ? $_REQUEST['return_url'] : home_url(); // 支付后跳转返回地址
 
-if (!empty($_GET['out_trade_no']) && !empty($_GET['app_type']) && !empty($_GET['app_id']) && !empty($_GET['method']) && !empty($_GET['sign']) && !empty($_GET['app_id'])) {
+if (!empty($_GET['out_trade_no']) && !empty($_GET['app_type']) && !empty($_GET['app_id']) && !empty($_GET['method']) && !empty($_GET['sign'])) {
 
     global $wpdb;
     $out_trade_no = $_GET['out_trade_no'];
 
     //根据订单号查询是否有付款成功
     $pay_order = ZibDB::name('zibpay_payment')->where(['order_num' => $out_trade_no, 'status' => 1])->find()->toArray();
-
+    
     //查询未支付，则查询订单
     if (!$pay_order) {
         $config = zibpay_get_payconfig('official_alipay');

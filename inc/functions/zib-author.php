@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:37
- * @LastEditTime : 2026-06-30 22:34:19
+ * @LastEditTime : 2026-08-02 14:10:46
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -199,7 +199,7 @@ function zib_get_author_main_tab_args($author_id)
                     break;
 
                 case 'comment':
-                    if (!_pz('close_comments')) {
+                    if (zib_comment_is_show()) {
                         $comment_count = get_user_comment_count($author_id);
                         $new_tab       = array(
                             'title'         => __('评论', 'zib_language') . '<count class="opacity8 ml3">' . $comment_count . '</count>',

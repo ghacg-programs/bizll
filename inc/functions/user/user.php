@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-09-22 10:30:38
- * @LastEditTime : 2026-05-18 12:31:37
+ * @LastEditTime : 2026-08-25 20:23:06
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|用户认证相关函数
@@ -216,6 +216,13 @@ function zib_get_user_details_data_modal($user_id = '', $class = 'mb10 flex', $t
     }
 
     $privacy = zib_get_user_meta($user_id, 'privacy', true);
+    $gender_arr = array(
+        '保密' => __('保密', 'zib_language'),
+        '男' => __('男', 'zib_language'),
+        '女' => __('女', 'zib_language'),
+    );
+    $gender = zib_get_user_meta($user_id, 'gender', true);
+    $gender = $gender_arr[$gender] ?? __('保密', 'zib_language');
 
     $datas = array(
         array(
@@ -241,8 +248,8 @@ function zib_get_user_details_data_modal($user_id = '', $class = 'mb10 flex', $t
             'no_show' => true,
         ), array(
             'title'   => __('性别', 'zib_language'),
-            'value'   => esc_attr(get_user_meta($user_id, 'gender', true)),
-            'spare'   => __('保密', 'zib_language'),
+            'value'   => esc_attr($gender),
+            'spare'   => $gender_arr['保密'],
             'no_show' => true,
         ), array(
             'title'   => __('地址', 'zib_language'),

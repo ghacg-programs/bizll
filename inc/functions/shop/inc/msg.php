@@ -3,7 +3,7 @@
  * @Author       : Qinver
  * @Url          : zibll.com
  * @Date         : 2025-07-13 21:01:16
- * @LastEditTime : 2025-12-26 12:56:51
+ * @LastEditTime : 2026-08-25 12:18:02
  * @Project      : Zibll子比主题
  * @Description  : 更优雅的Wordpress主题|商城消息
  * Copyright (c) 2025 by Qinver, All Rights Reserved.
@@ -48,7 +48,7 @@ function zib_shop_msg_view_order_btn($link, $text = null)
     }
 
     return __('您可以点击下方按钮查看订单详情', 'zib_language') . '<br>'
-        . '<a target="_blank" style="margin-top: 20px;padding:5px 20px" class="but jb-blue" href="' . esc_url($link) . '">' . $text . '</a>' . '<br>';
+    . '<a target="_blank" style="margin-top: 20px;padding:5px 20px" class="but jb-blue" href="' . esc_url($link) . '">' . $text . '</a>' . '<br>';
 }
 
 //自动发货失败，通知用户联系商家
@@ -68,6 +68,8 @@ function zib_shop_auto_delivery_fail_to_user(array $order, array $order_meta_dat
     if (isset($receive_user_data->user_email)) {
         $user_email[] = $receive_user_data->user_email;
     }
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
 
     $title   = sprintf(__('您购买的商品自动发货失败，请与客服联系[商品：%1$s%2$s]', 'zib_language'), ($post_title ? '[' . $post_title . ']' : ''), (!empty($order_meta_data['options_active_name']) ? '[' . $order_meta_data['options_active_name'] . ']' : ''));
     $message = __('您好！', 'zib_language') . '<br>' . __('您购买的商品自动发货失败，请与客服联系', 'zib_language') . '<br>';
@@ -97,6 +99,8 @@ function zib_shop_auto_delivery_fail_to_user(array $order, array $order_meta_dat
         );
         zib_wechat_template_send($receive_user_id, 'shop_auto_delivery_fail', $wechat_template_data, zib_get_user_center_url('order'));
     }
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //虚拟商品商品，将内容发送给用户
@@ -209,6 +213,8 @@ function zib_shop_manual_shipping_to_user(array $order, array $order_meta_data)
     $user_data           = get_userdata($order['user_id']);
     $order_link          = zib_get_user_center_url('order', 'wait-receive');
 
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
     if ($post_data) {
         $post_title = zib_str_cut($post_data->post_title, 0, 20, '...');
     }
@@ -273,6 +279,8 @@ function zib_shop_manual_shipping_to_user(array $order, array $order_meta_data)
         );
         zib_wechat_template_send($user_data->ID, 'shop_express_shipping', $wechat_template_data, $order_link);
     }
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //用户申请售后，通知商家
@@ -359,6 +367,9 @@ function zib_shop_after_sale_wait_user_return_to_user(array $order, array $order
         return;
     }
 
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
+
     $user_email          = $user_data->user_email ?? '';
     $post_title          = $order_meta_data['product_title'] ?? '';
     $options_active_name = $order_meta_data['options_active_name'] ?? '';
@@ -401,6 +412,8 @@ function zib_shop_after_sale_wait_user_return_to_user(array $order, array $order
         );
         zib_wechat_template_send($user_data->ID, 'shop_after_sale_wait_user_return', $wechat_template_data, $link);
     }
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //用户退货，等待商家收货
@@ -479,6 +492,9 @@ function zib_shop_after_sale_to_end_to_user(array $order, array $order_meta_data
         return;
     }
 
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
+
     $product_id           = $order['post_id'];
     $after_sale_type_name = zib_shop_get_after_sale_type_name($order_meta_data['after_sale_data']['type'] ?? '');
     $link                 = zib_get_user_center_url('order', ($after_sale_status == 5 ? '' : 'after-sale'));
@@ -529,6 +545,8 @@ function zib_shop_after_sale_to_end_to_user(array $order, array $order_meta_data
         );
         zib_wechat_template_send($user_data->ID, 'shop_after_sale_end', $wechat_template_data, $link);
     }
+    //恢复到原来的语言
+    zib_restore_previous_locale();
 }
 
 //用户取消售后，通知商家

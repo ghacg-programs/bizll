@@ -13,6 +13,13 @@
     var modal_id = 'zibpay_modal';
     var is_mobile = $('body').width() < 768;
 
+    if (typeof zib__ === 'undefined') {
+        zib__ = function(key) {
+                var map = window._win && window._win.i18n;
+                return map && Object.prototype.hasOwnProperty.call(map, key) ? map[key] : key;
+        };
+    }
+
     init();
 
     function init() {

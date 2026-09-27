@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:50
- * @LastEditTime : 2026-05-17 15:05:37
+ * @LastEditTime : 2026-08-31 14:55:05
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -350,7 +350,7 @@ class ZibPay
         $meta_value = maybe_serialize(wp_unslash($meta_value));
 
         //先判断$meta_key是否存在
-        if ($wpdb->get_var($wpdb->prepare("SELECT 1 FROM $wpdb->zibpay_order_meta WHERE order_id = %d AND meta_key = %s", (int)$order_id, $meta_key)) !== null) {
+        if ($wpdb->get_var("SELECT 1 FROM $wpdb->zibpay_order_meta WHERE order_id = $order_id AND meta_key = '$meta_key'") !== null) {
             $wpdb->update($wpdb->zibpay_order_meta, array('meta_value' => $meta_value), array('order_id' => $order_id, 'meta_key' => $meta_key));
             do_action('update_order_meta', $order_id, $meta_key, $meta_value);
         } else {
@@ -423,7 +423,7 @@ class ZibPay
 
         global $wpdb;
         $ago_time = date('Y-m-d H:i:s', strtotime("-$days_ago day", strtotime(current_time('Y-m-d H:i:s'))));
-        $where    = $wpdb->prepare("`status` = -1 and `create_time` < %s", $ago_time);
+        $where    = "`status` = -1 and `create_time` < '$ago_time'";
         $wpdb->query("DELETE FROM $wpdb->zibpay_payment WHERE $where"); //删除无效的支付记录
 
         //线程查询出全部的订单ID
@@ -431,7 +431,7 @@ class ZibPay
         $count     = 0;
         if (!empty($order_ids)) {
             $count     = count($order_ids);
-            $order_ids = implode(',', array_map('intval', $order_ids));
+            $order_ids = implode(',', $order_ids);
             $wpdb->query("DELETE FROM $wpdb->zibpay_order WHERE id IN ($order_ids)"); //删除无效的订单
             $wpdb->query("DELETE FROM $wpdb->zibpay_order_meta WHERE order_id IN ($order_ids)"); //删除无效的订单元数据
         }
@@ -812,11 +812,61 @@ class ZibPay
         return strpos($order_num, self::$payment_order_num_prefix) === 0;
     }
 
+    /**
+     * 第三方实付与本地应付是否允许入账（差额不超过 2 元）
+     *
+     * @param float $local_price 本地应付金额（元）
+     * @param float $paid_price  网关实付金额（元）
+     * @return bool
+     */
+    public static function is_pay_amount_allowed($local_price, $paid_price)
+    {
+        $diff = abs((float) zib_floatval_round($paid_price, false) - (float) zib_floatval_round($local_price, false));
+        return $diff <= 2;
+    }
+
+    /**
+     * 积分/余额/卡密等本地扣款不比对第三方金额
+     *
+     * @param array $values
+     * @return bool
+     */
+    public static function should_skip_pay_amount_check(array $values)
+    {
+        //考虑到汇率问题，暂不启用
+        return true;
+    
+        if (!empty($values['skip_pay_amount_check'])) {
+            return true;
+        }
+
+        $type = isset($values['pay_type']) ? $values['pay_type'] : '';
+        return in_array($type, array('points', 'balance', 'card_pass'), true);
+    }
+
+    /**
+     * 校验回调实付金额，不通过则拒绝入账
+     *
+     * @param float $local_price
+     * @param array $values
+     * @return bool
+     */
+    public static function verify_notify_pay_amount($local_price, array $values)
+    {
+        if (self::should_skip_pay_amount_check($values)) {
+            return true;
+        }
+
+        if (!isset($values['pay_price'])) {
+            return false;
+        }
+
+        return self::is_pay_amount_allowed($local_price, $values['pay_price']);
+    }
+
     //payment支付订单
     public static function payment_payment(array $data)
     {
-        global $wpdb;
-
         $defaults = array(
             'order_num' => '', //订单号：必传
             'pay_type'  => '', //支付方式
@@ -824,12 +874,18 @@ class ZibPay
         );
 
         $data = wp_parse_args((array) $data, $defaults);
+
         if (empty($data['order_num'])) {
             return false;
         }
 
         $payment = self::get_payment($data['order_num']);
+
         if (empty($payment['id'])) {
+            return false;
+        }
+
+        if (!self::verify_notify_pay_amount($payment['price'], $data)) {
             return false;
         }
 
@@ -847,9 +903,10 @@ class ZibPay
                 foreach ($order_data as $order) {
                     if ($order['status'] == 0) {
                         $payment_order_data = array(
-                            'order_num' => $order['order_num'], //订单号
-                            'pay_type'  => $data['pay_type'] ?: $payment['method'], //支付方式
-                            'pay_num'   => $data['pay_num'], //支付单号
+                            'order_num'             => $order['order_num'], //订单号
+                            'pay_type'              => $data['pay_type'] ?: $payment['method'], //支付方式
+                            'pay_num'               => $data['pay_num'], //支付单号
+                            'skip_pay_amount_check' => true,
                         );
 
                         $payment_order_data['pay_detail'][$payment['method']] = $order['pay_price'];
@@ -884,6 +941,22 @@ class ZibPay
 
         if (self::is_payment_order($values['order_num'])) {
             return self::payment_payment($values);
+        }
+
+        //金额对比
+        if (!self::should_skip_pay_amount_check($values)) {
+            if (!isset($values['pay_price'])) {
+                return false;
+            }
+
+            $pending = ZibDB::name(self::$order_table_name)->where(array('order_num' => $values['order_num'], 'status' => array('0', '-1')))->field('id,pay_price')->find()->toArray();
+            if (empty($pending['id'])) {
+                return false;
+            }
+
+            if (!self::is_pay_amount_allowed($pending['pay_price'], $values['pay_price'])) {
+                return false;
+            }
         }
 
         //准备参数

@@ -361,7 +361,7 @@ function zib_oauth_page_template()
     $oauth          = strtolower(get_query_var('oauth')); //转换为小写
     $oauth_callback = get_query_var('oauth_callback');
     if ($oauth) {
-        if (in_array($oauth, array('clogin', 'agent', 'gitee', 'giteeagent', 'alipay', 'alipayagent', 'baidu', 'baiduagent', 'qq', 'qqagent', 'weixin', 'weixinagent', 'weixingzh', 'weibo', 'weiboagent', 'github', 'githubagent', 'google', 'googleagent', 'facebook', 'facebookagent', 'microsoft', 'microsoftagent', 'twitter', 'twitteragent', 'apple', 'appleagent'))):
+        if (in_array($oauth, array('clogin', 'agent', 'gitee', 'giteeagent', 'alipay', 'alipayagent', 'baidu', 'baiduagent', 'qq', 'qqagent', 'weixin', 'weixinagent', 'weixingzh', 'weibo', 'weiboagent', 'github', 'githubagent', 'google', 'googleagent', 'facebook', 'facebookagent', 'microsoft', 'microsoftagent', 'twitter', 'twitteragent', 'apple', 'appleagent', 'douyin', 'douyinagent'))):
             global $wp_query;
             $wp_query->is_home = false;
             $wp_query->is_page = false;

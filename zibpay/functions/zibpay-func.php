@@ -1367,3 +1367,45 @@ function zib_brush_limit_create_order($order_data)
     return $order_data;
 }
 add_filter('pre_order_create_data', 'zib_brush_limit_create_order', 99);
+
+/**
+ * 后台订单列表排序字段白名单
+ *
+ * @param string $orderby
+ * @param string $default
+ * @return string
+ */
+function zibpay_sanitize_admin_orderby($orderby, $default = 'pay_time')
+{
+    $allow = array(
+        'id',
+        'order_num',
+        'order_price',
+        'pay_price',
+        'pay_time',
+        'create_time',
+        'user_id',
+        'post_id',
+        'post_author',
+        'order_type',
+        'pay_type',
+        'status',
+        'income_price',
+        'income_status',
+        'rebate_price',
+        'rebate_status',
+        'referrer_id',
+    );
+    return in_array($orderby, $allow, true) ? $orderby : $default;
+}
+
+/**
+ * 后台订单列表排序方向
+ *
+ * @param string $dir
+ * @return string
+ */
+function zibpay_sanitize_admin_order_dir($dir)
+{
+    return strtoupper((string) $dir) === 'ASC' ? 'ASC' : 'DESC';
+}

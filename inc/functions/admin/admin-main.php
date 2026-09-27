@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:36
- * @LastEditTime : 2026-05-25 17:17:54
+ * @LastEditTime : 2026-08-26 22:47:11
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -277,7 +277,7 @@ if (strpos($_SERVER['SCRIPT_NAME'], 'edit-tags.php')) {
 }
 
 // editor style
-add_editor_style(get_locale_stylesheet_uri() . '/css/editor-style.min.css', array(), THEME_VERSION, 'all');
+add_editor_style(get_locale_stylesheet_uri() . '/css/editor-style.min.css');
 
 // 后台Ctrl+Enter提交评论回复
 add_action('admin_footer', '_admin_comment_ctrlenter');
@@ -321,7 +321,7 @@ add_action('restrict_manage_comments', 'zib_restrict_manage_comments');
 function zib_admin_comment_table_text_filter($comment_text, $comment, $args)
 {
 
-    //评论图片
+    //地址
     $addr_html = '';
     $addr_data = zib_get_comment_meta($comment->comment_ID, 'comment_addr', true);
     $addr_html = zib_get_ip_geographical_position_badge($addr_data, 'city', '');

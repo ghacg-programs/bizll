@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-10-17 19:56:54
- * @LastEditTime : 2026-04-28 20:53:10
+ * @LastEditTime : 2026-07-14 15:23:59
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|搜索功能相关函数
@@ -298,7 +298,7 @@ function zib_get_search_desc()
                 $in_cat_link = get_term_link($get_term->term_id, $get_term->taxonomy);
             }
         }
-        if ($in_cat_name) {
+        if ($in_cat_name && !is_wp_error($in_cat_link)) {
             $text .= $user_text ? __('、', 'zib_language') : '';
             $text .= $in_cat_type . ' <a class="focus-color" href="' . $in_cat_link . '"><b>' . $in_cat_name . '</b></a> ';
         }

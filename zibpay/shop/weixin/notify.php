@@ -54,6 +54,7 @@ class PayNotify extends \Yurun\PaySDK\Weixin\Notify\Pay
         $pay = array(
             'order_num' => $this->data['out_trade_no'],
             'pay_type'  => 'weixin',
+            'pay_price' => $this->data['total_fee'] / 100,
             'pay_num'   => $this->data['transaction_id'],
         );
 

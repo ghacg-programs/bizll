@@ -217,6 +217,11 @@
 
 /* ------------------- 评论评分 ------------------- */
 .comment-score-progress {
+    position: relative;
+    border-radius: 50px;
+    color: var(--muted-color);
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin: 0 10px;
     background: var(--main-border-color);
     padding: 3px;
@@ -224,14 +229,21 @@
 }
 
 .comment-score-progress .vote-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transition: width 1s, background 0.2s;
+    border-radius: 50px;
     background: #ff5473;
 }
+
 .comment-score-imgs.count-1 > span > img {
     max-width: 300px;
     max-height: 300px;
 }
 
-.comment-score-progress + .score-value{
+.comment-score-progress + .score-value {
     width: 1.6em;
     text-align: right;
 }
@@ -1388,7 +1400,7 @@
         font-size: 14px;
     }
 
-    .shop-cart-page footer::after{
+    .shop-cart-page footer::after {
         content: '';
         display: block;
         height: calc(56px + constant(safe-area-inset-bottom));

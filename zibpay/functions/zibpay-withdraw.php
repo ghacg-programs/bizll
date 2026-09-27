@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-04-17 17:49:02
- * @LastEditTime : 2026-06-22 22:57:34
+ * @LastEditTime : 2026-08-25 12:24:44
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|支付系统：提现功能 withdraw
@@ -443,6 +443,9 @@ function zibpay_withdraw_process($id, $is_allow = true, $msg = '', $payout_args 
         }
     }
 
+    //手动切换到前台语言
+    zib_switch_to_frontend_locale();
+
     //设置推广返佣订单状态
     $status_set    = $is_allow ? 1 : 0;
     $rebate_orders = !empty($meta['withdraw_orders']['rebate']) ? $meta['withdraw_orders']['rebate'] : 0;
@@ -567,6 +570,8 @@ function zibpay_withdraw_process($id, $is_allow = true, $msg = '', $payout_args 
     //添加挂钩
     do_action('withdraw_process_newmsg', $new_msg_arge, $msg_db);
     do_action('withdraw_process', $msg_db, $is_allow, $msg);
+    //恢复到原来的语言
+    zib_restore_previous_locale();
     return true;
 }
 

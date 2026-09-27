@@ -53,6 +53,7 @@ if (!$_POST['pay_no'] || md5($sign . $config['key']) != $_POST['sign']) { //不�
     $pay = array(
         'order_num' => $_POST['pay_id'],
         'pay_type'  => 'codepay',
+        'pay_price' => $_POST['money'],
         'pay_num'   => $_POST['pay_no'],
     );
     // 更新订单状态

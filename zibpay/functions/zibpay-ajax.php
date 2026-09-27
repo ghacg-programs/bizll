@@ -45,7 +45,7 @@ function zibpay_ajax_initiate_pay($payment_id = 0)
      */
 
     $payment_id = $payment_id ?: (!empty($_REQUEST['payment_id']) ? (int) $_REQUEST['payment_id'] : 0);
-    $return_url = !empty($_REQUEST['return_url']) ? esc_url_raw($_REQUEST['return_url']) : '';
+    $return_url = !empty($_REQUEST['return_url']) ? $_REQUEST['return_url'] : '';
 
     if (!$return_url) {
         if (get_current_user_id()) {
@@ -347,7 +347,7 @@ function zibpay_initiate_pay($order_data)
     );
     $order_data = wp_parse_args($order_data, $defaults);
 
-    //实例化sdk
+    //兼容旧版支付SDK引导类，不存在时直接跳过
     if (class_exists('ZibPaySDK')) {
         new ZibPaySDK();
     }
@@ -423,8 +423,21 @@ function zibpay_initiate_pay($order_data)
     return $payresult;
 }
 
+//注册各支付SDK的filter回调
+add_filter('zibpay_initiate_paypal', 'zibpay_zibpay_initiate_paypal');
+add_filter('zibpay_initiate_vmqphp', 'zibpay_initiate_vmqphp');
+add_filter('zibpay_initiate_epay', 'zibpay_initiate_epay');
+add_filter('zibpay_initiate_official_alipay', 'zibpay_initiate_official_alipay');
+add_filter('zibpay_initiate_official_wechat', 'zibpay_initiate_official_wechat');
+add_filter('zibpay_initiate_xunhupay', 'zibpay_initiate_xunhupay');
+add_filter('zibpay_initiate_payjs', 'zibpay_initiate_payjs');
+add_filter('zibpay_initiate_xhpay', 'zibpay_initiate_xhpay');
+add_filter('zibpay_initiate_codepay', 'zibpay_initiate_codepay');
+add_filter('zibpay_initiate_balance', 'zibpay_initiate_balance');
+add_filter('zibpay_initiate_card_pass', 'zibpay_initiate_card_pass');
+
 //PayPal发起支付
-function zibpay_initiate_paypal($order_data)
+function zibpay_zibpay_initiate_paypal($order_data)
 {
     $config = zibpay_get_payconfig('paypal');
     if (!empty($config['rest_s'])) {
@@ -525,19 +538,6 @@ function zibpay_initiate_stripe($order_data)
     return array('open_url' => true, 'url' => $result['url']);
 }
 add_filter('zibpay_initiate_stripe', 'zibpay_initiate_stripe');
-add_filter('zibpay_initiate_vmqphp', 'zibpay_initiate_vmqphp');
-add_filter('zibpay_initiate_epay', 'zibpay_initiate_epay');
-add_filter('zibpay_initiate_official_alipay', 'zibpay_initiate_official_alipay');
-add_filter('zibpay_initiate_official_wechat', 'zibpay_initiate_official_wechat');
-add_filter('zibpay_initiate_xunhupay', 'zibpay_initiate_xunhupay');
-add_filter('zibpay_initiate_payjs', 'zibpay_initiate_payjs');
-add_filter('zibpay_initiate_xhpay', 'zibpay_initiate_xhpay');
-add_filter('zibpay_initiate_codepay', 'zibpay_initiate_codepay');
-add_filter('zibpay_initiate_balance', 'zibpay_initiate_balance');
-add_filter('zibpay_initiate_card_pass', 'zibpay_initiate_card_pass');
-add_filter('zibpay_initiate_paypal', 'zibpay_initiate_paypal');
-add_filter('zibpay_initiate_paypal_rest', 'zibpay_initiate_paypal_rest');
-add_filter('zibpay_initiate_paypal_nvp', 'zibpay_initiate_paypal_nvp');
 
 //V免签发起支付
 function zibpay_initiate_vmqphp($order_data)
@@ -892,7 +892,7 @@ function zibpay_initiate_official_wechat($order_data = array())
 //微信官方支付获取openid
 function zib_ajax_get_gzh_open_id()
 {
-    $return_url = !empty($_REQUEST['return_url']) ? esc_url_raw($_REQUEST['return_url']) : '';
+    $return_url = !empty($_REQUEST['return_url']) ? $_REQUEST['return_url'] : '';
     $code       = !empty($_REQUEST['code']) ? $_REQUEST['code'] : '';
 
     $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?';

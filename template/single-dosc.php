@@ -46,6 +46,7 @@ get_header();
 
 function zib_single_dosc_header()
 {
+    global $post;
     $title = get_the_title() . get_the_subtitle();
     $time_up = zib_get_time_ago(get_the_modified_time('Y-m-d H:i:s'));
     $time = zib_get_time_ago(get_the_time('Y-m-d H:i:s'));
@@ -57,7 +58,7 @@ function zib_single_dosc_header()
     }
     $meta = '';
     $meta .= '<item class="meta-view" data-toggle="tooltip" title="' . esc_attr__('阅读', 'zib_language') . '">' . zib_get_svg('view') . get_post_view_count($before = '', $after = '') . '</item>';
-    if (comments_open() && !_pz('close_comments')) {
+    if (zib_comment_is_show($post)) {
         $meta .= '<item class="meta-comm"><a data-toggle="tooltip" title="' . esc_attr__('去评论', 'zib_language') . '" href="javascript:(scrollTopTo(\'#comments\'));">' . zib_get_svg('comment') . get_comments_number('0', '1', '%') . '</a></item>';
     }
     $meta .= '<item class="meta-like" data-toggle="tooltip" title="' . esc_attr__('点赞', 'zib_language') . '">' . zib_get_post_like('action action-like', '', '') . '</item>';

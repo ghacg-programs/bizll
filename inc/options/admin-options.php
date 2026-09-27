@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-11-11 11:41:45
- * @LastEditTime : 2026-06-30 21:27:15
+ * @LastEditTime : 2026-08-25 19:53:04
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|后台主题设置
@@ -2111,7 +2111,7 @@ function zib_csf_admin_options()
                 'id'           => 'translate_buttons',
                 'button_title' => __('添加语言', 'zib_language'),
                 'min'          => '1',
-                'max'          => '10',
+                'max'          => '30',
                 'type'         => 'group',
                 'default'      => array(
                     array(
@@ -2193,7 +2193,7 @@ function zib_csf_admin_options()
                 'fields'     => array(
                     array(
                         'title'   => __('自动切换到用户语言', 'zib_language'),
-                        'label'   => __('用户首次访问网站时，自动获取所属语言并自动切换，如果关闭，则默认显示本站语言（注意：1.用户手动切换后，不再自动识别，2.基于ip地址判断，非100%准确）', 'zib_language'),
+                        'label'   => __('用户首次访问网站时，自动获取所属语言并自动切换，如果关闭，则默认显示本站语言（注意：1.用户手动切换后，不再自动识别，2.基于ip地址判断，非100%准确，3.可能会影响来自其他国家搜索引擎的收录语言）', 'zib_language'),
                         'id'      => 'auto_discriminate_local',
                         'type'    => 'switcher',
                         'default' => false,
@@ -5599,6 +5599,23 @@ function zib_csf_admin_options()
             ),
             array(
                 'dependency' => array('close_comments', '==', '', '', 'visible'),
+                'id'         => 'comment_box_hide',
+                'title'      => ' ',
+                'title'   => __('隐藏评论模块', 'zib_language'),
+                'desc'       => __('当用户满足条件时，文章评论功能及模块才会显示', 'zib_language'),
+                'default'    => '',
+                'inline'     => true,
+                'type'       => 'radio',
+                'options'    => array(
+                    ''       => __('不隐藏', 'zib_language'),
+                    'signin' => __('登录后显示', 'zib_language'),
+                    'vip'    => __('所有会员显示', 'zib_language'),
+                    'vip_2'  => __('二级会员显示', 'zib_language'),
+                    'auth'   => __('认证用户显示', 'zib_language'),
+                ),
+            ),
+            array(
+                'dependency' => array('close_comments', '==', '', '', 'visible'),
                 'id'         => 'comment_paginate_type',
                 'title'      => __('评论列表翻页模式', 'zib_language'),
                 'default'    => 'default',
@@ -6708,6 +6725,7 @@ function zib_csf_admin_options()
                             'weixin'    => __('微信', 'zib_language'),
                             'alipay'    => __('支付宝', 'zib_language'),
                             'weibo'     => __('微博', 'zib_language'),
+                            'douyin'    => __('抖音', 'zib_language'),
                             'baidu'     => __('百度', 'zib_language'),
                             'github'    => 'GitHub',
                             'gitee'     => 'Gitee',
@@ -6810,6 +6828,7 @@ function zib_csf_admin_options()
                             'weixin'    => __('微信登录(开放平台模式)', 'zib_language'),
                             'weixingzh' => __('微信登录(公众号模式)', 'zib_language'),
                             'weibo'     => __('微博', 'zib_language'),
+                            'douyin'    => __('抖音', 'zib_language'),
                             'github'    => 'GitHub',
                             'gitee'     => __('码云', 'zib_language'),
                             'baidu'     => __('百度', 'zib_language'),
@@ -7276,6 +7295,39 @@ function zib_csf_admin_options()
                     ),
                     array(
                         'title' => 'AppSecret',
+                        'class' => 'compact',
+                        'id'    => 'appkey',
+                        'type'  => 'text',
+                    ),
+                ),
+            ),
+            array(
+                'dependency' => array('social', '==', '', '', 'visible'),
+                'title'      => __('抖音登录', 'zib_language'),
+                'id'         => 'oauth_douyin_s',
+                'default'    => false,
+                'type'       => 'switcher',
+            ),
+            array(
+                'dependency' => array('oauth_douyin_s|social', '!=|==', '|'),
+                'title'      => ' ',
+                'subtitle'   => __('抖音登录配置', 'zib_language'),
+                'id'         => 'oauth_douyin_option',
+                'type'       => 'fieldset',
+                'class'      => 'compact',
+                'fields'     => array(
+                    array(
+                        'content' => '<h4><b>' . __('已获授权的重定向 URI', 'zib_language') . '：</b>' . esc_url(home_url('/oauth/douyin/callback')) . '</h4>' . __('抖音登录申请地址：https://developer.open-douyin.com （需创建网站应用，申请授权登录与用户基础信息权限，回调地址须为 HTTPS） ', 'zib_language') . '<a target="_blank" href="https://developer.open-douyin.com/">' . __('【点击跳转】', 'zib_language') . '</a>',
+                        'style'   => 'info',
+                        'type'    => 'submessage',
+                    ),
+                    array(
+                        'title' => 'ClientKey',
+                        'id'    => 'appid',
+                        'type'  => 'text',
+                    ),
+                    array(
+                        'title' => 'ClientSecret',
                         'class' => 'compact',
                         'id'    => 'appkey',
                         'type'  => 'text',
@@ -11999,7 +12051,7 @@ function zib_csf_admin_options()
 
     CSF::createSection($prefix, array(
         'parent'      => 'over',
-        'title'       => __('网站安全', 'zib_language') . $new_badge['8.5'],
+        'title'       => __('网站安全', 'zib_language') . $new_badge['9.1'],
         'icon'        => 'fa fa-fw fa-umbrella',
         'description' => '',
         'fields'      => array(
@@ -12278,6 +12330,75 @@ function zib_csf_admin_options()
                         'min'      => 0,
                         'step'     => 5,
                         'unit'     => __('个订单', 'zib_language'),
+                        'type'     => 'spinner',
+                    ),
+                ),
+            ),
+            array(
+                'title'    => __('[防刷机制]验证码发送限制', 'zib_language') . $new_badge['9.1'],
+                'subtitle' => __('限制验证码邮件/短信的发送频率，防止恶意程序批量轰炸特定邮箱或手机号', 'zib_language'),
+                'id'       => 'brush_limit_captcha_send',
+                'type'     => 'fieldset',
+                'fields'   => array(
+                    array(
+                        'title'    => ' ',
+                        'subtitle' => __('同一收件人/IP发送冷却', 'zib_language'),
+                        'desc'     => __('同一邮箱或手机号、同一IP地址发送验证码后，需间隔此时间才可再次发送（0为不限制）', 'zib_language'),
+                        'id'       => 'cooldown',
+                        'default'  => 60,
+                        'max'      => 600,
+                        'min'      => 0,
+                        'step'     => 10,
+                        'unit'     => __('秒', 'zib_language'),
+                        'type'     => 'spinner',
+                    ),
+                    array(
+                        'title'    => ' ',
+                        'subtitle' => __('同一收件人1小时内最多', 'zib_language'),
+                        'class'    => 'compact',
+                        'id'       => 'to_hour_1',
+                        'default'  => 15,
+                        'max'      => 500,
+                        'min'      => 0,
+                        'step'     => 1,
+                        'unit'     => __('次', 'zib_language'),
+                        'type'     => 'spinner',
+                    ),
+                    array(
+                        'title'    => ' ',
+                        'subtitle' => __('同一收件人一天内最多', 'zib_language'),
+                        'class'    => 'compact',
+                        'id'       => 'to_day_1',
+                        'default'  => 30,
+                        'max'      => 1000,
+                        'min'      => 0,
+                        'step'     => 1,
+                        'unit'     => __('次', 'zib_language'),
+                        'type'     => 'spinner',
+                    ),
+                    array(
+                        'title'    => ' ',
+                        'subtitle' => __('同一IP 10分钟内最多', 'zib_language'),
+                        'class'    => 'compact',
+                        'id'       => 'ip_minutes_10',
+                        'default'  => 20,
+                        'max'      => 500,
+                        'min'      => 0,
+                        'step'     => 1,
+                        'unit'     => __('次', 'zib_language'),
+                        'type'     => 'spinner',
+                    ),
+                    array(
+                        'title'    => ' ',
+                        'subtitle' => __('同一IP一天内最多', 'zib_language'),
+                        'desc'     => __('如果您的服务器不能正确的获取用户真实IP地址，请关闭此项（0为不限制）', 'zib_language'),
+                        'class'    => 'compact',
+                        'id'       => 'ip_day_1',
+                        'default'  => 50,
+                        'max'      => 2000,
+                        'min'      => 0,
+                        'step'     => 5,
+                        'unit'     => __('次', 'zib_language'),
                         'type'     => 'spinner',
                     ),
                 ),

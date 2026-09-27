@@ -93,22 +93,34 @@ function zib_ajax_user_split_upload()
         zib_send_json_error(__('登录失效，请刷新页面重新登录', 'zib_language'));
     }
 
-    //准备资料
-    $file_type                = isset($_REQUEST['file_type']) ? $_REQUEST['file_type'] : '';
-    $file_size                = isset($_REQUEST['file_size']) ? (int) $_REQUEST['file_size'] : 0;
-    $split_chunks_count       = isset($_REQUEST['split_chunks_count']) ? (int) $_REQUEST['split_chunks_count'] : 0;
-    $split_current_chunk      = isset($_REQUEST['split_current_chunk']) ? (int) $_REQUEST['split_current_chunk'] : 0;
+    // 每个分片请求均执行 Nonce 校验，禁止通过伪造分片索引绕过 CSRF 防护。
+    zib_ajax_verify_nonce('user_upload');
+
+    // 准备并清洗上传参数。
+    $file_type                = isset($_POST['file_type']) ? sanitize_key(wp_unslash($_POST['file_type'])) : '';
+    $file_size                = isset($_POST['file_size']) ? absint($_POST['file_size']) : 0;
+    $split_chunks_count       = isset($_POST['split_chunks_count']) ? absint($_POST['split_chunks_count']) : 0;
+    $split_current_chunk      = isset($_POST['split_current_chunk']) ? absint($_POST['split_current_chunk']) : 0;
     $split_current_chunk_part = $split_current_chunk + 1;
-    $file_name                = isset($_REQUEST['file_name']) ? $_REQUEST['file_name'] : $_FILES[$file_id]['file_name'];
+    $file_name                = isset($_POST['file_name']) ? sanitize_file_name(wp_unslash($_POST['file_name'])) : sanitize_file_name($_FILES[$file_id]['name']);
     $temp_dir                 = ZIB_TEMP_DIR;
 
-    if (!$file_size) {
-        zib_send_json_error(__('文件大小获取失败，请重新选择文件', 'zib_language'));
+    if (!$file_size || !$file_name) {
+        zib_send_json_error(__('文件上传参数异常，请重新选择文件', 'zib_language'));
     }
 
-    //执行安全验证检查，验证不通过自动结束并返回提醒(只检查前两个分片)
-    if ($split_current_chunk < 1) {
-        zib_ajax_verify_nonce('user_upload');
+    if (!in_array($file_type, array('image', 'video', 'file'), true)) {
+        zib_send_json_error(__('不支持的文件类型', 'zib_language'));
+    }
+
+    // 限制分片数量和索引，避免异常循环及磁盘 I/O 资源耗尽。
+    $max_chunks = (int) apply_filters('zib_user_split_upload_max_chunks', 10000);
+    if ($split_chunks_count < 1 || $split_chunks_count > $max_chunks || $split_current_chunk >= $split_chunks_count) {
+        zib_send_json_error(__('文件分片参数异常，请重新上传', 'zib_language'));
+    }
+
+    if (!isset($_FILES[$file_id]['tmp_name']) || !is_uploaded_file($_FILES[$file_id]['tmp_name'])) {
+        zib_send_json_error(__('上传临时文件无效，请重新选择文件', 'zib_language'));
     }
 
     switch ($file_type) {
@@ -150,8 +162,9 @@ function zib_ajax_user_split_upload()
         zib_file_chunk::chunk_save_init();
     }
 
-    $file_name_sha1 = md5($file_name);
+    // 将临时分片命名空间绑定到站点、当前用户和文件名，防止不同用户覆盖或合并同名上传任务。
     $blog_id        = get_current_blog_id();
+    $file_name_sha1 = md5($blog_id . '|' . $cuid . '|' . $file_name);
 
     //判断文件大小
     $all_part_size  = filesize($_FILES[$file_id]['tmp_name']);
@@ -210,17 +223,34 @@ function zib_ajax_user_split_upload_merge()
         zib_send_json_error(__('登录失效，请刷新页面重新登录', 'zib_language'));
     }
 
-    //准备资料
-    $file_id            = 'file';
-    $split_chunks_count = isset($_REQUEST['split_chunks_count']) ? (int) $_REQUEST['split_chunks_count'] : 0;
-    $file_name          = isset($_REQUEST['file_name']) ? $_REQUEST['file_name'] : '';
-    $temp_dir           = ZIB_TEMP_DIR;
-    $file_name_sha1     = md5($file_name);
-    $blog_id            = get_current_blog_id();
+    // 合并请求必须独立执行 Nonce 校验。
+    zib_ajax_verify_nonce('user_upload');
 
-    //最后一个分片上传，合并文件
-    $target_file = sprintf('%s/%d-%s-%s', $temp_dir, $blog_id, $file_name_sha1, 'merge.part'); //合并后的文件路径
-    $fp          = fopen($target_file, 'ab'); //以写入的形式打开文件
+    // 准备并清洗合并参数。
+    $file_id            = 'file';
+    $split_chunks_count = isset($_POST['split_chunks_count']) ? absint($_POST['split_chunks_count']) : 0;
+    $file_name          = isset($_POST['file_name']) ? sanitize_file_name(wp_unslash($_POST['file_name'])) : '';
+    $temp_dir           = ZIB_TEMP_DIR;
+    $max_chunks         = (int) apply_filters('zib_user_split_upload_max_chunks', 10000);
+
+    if (!$file_name || $split_chunks_count < 1 || $split_chunks_count > $max_chunks) {
+        zib_send_json_error(__('文件分片参数异常，请重新上传', 'zib_language'));
+    }
+
+    // 与分片上传阶段使用相同的用户级命名空间，防止跨用户合并同名文件。
+    $blog_id        = get_current_blog_id();
+    $file_name_sha1 = md5($blog_id . '|' . $cuid . '|' . $file_name);
+
+    // 使用覆盖写入并加排他锁，避免旧 merge.part 内容被重复追加。
+    $target_file = sprintf('%s/%d-%s-%s', $temp_dir, $blog_id, $file_name_sha1, 'merge.part');
+    $fp          = fopen($target_file, 'wb');
+
+    if (!$fp || !flock($fp, LOCK_EX | LOCK_NB)) {
+        if (is_resource($fp)) {
+            fclose($fp);
+        }
+        zib_send_json_error(__('文件正在合并，请稍后重试', 'zib_language'));
+    }
     for ($i = 0; $i <= $split_chunks_count - 1; $i++) {
         $chunkFile = sprintf('%s/%d-%s-%d.part', $temp_dir, $blog_id, $file_name_sha1, $i);
         $chunkData = @file_get_contents($chunkFile);
@@ -302,23 +332,34 @@ add_action('wp_ajax_user_split_uploaded_chunk', 'zib_ajax_user_split_uploaded_ch
  */
 function zib_get_split_uploaded_md5_data($file_name, $count)
 {
+    $user_id    = get_current_user_id();
+    $blog_id    = get_current_blog_id();
+    $temp_dir   = ZIB_TEMP_DIR;
+    $file_name  = sanitize_file_name($file_name);
+    $count      = absint($count);
+    $max_chunks = (int) apply_filters('zib_user_split_upload_max_chunks', 10000);
 
-    $temp_dir       = ZIB_TEMP_DIR;
-    $file_name_sha1 = md5($file_name);
-    $blog_id        = get_current_blog_id();
-    $result         = array(
-        'uploaded_chunks' => [],
+    $result = array(
+        'uploaded_chunks' => array(),
         'uploaded_count'  => 0,
     );
 
-    //验证前台传入的已上传切片MD5是否与后台计算的一致，一致则表示切片上传成功
-    for ($i = 0; $i <= $count - 1; $i++) {
-        $ed_chunk_path = sprintf('%s/%d-%s-%d.part', $temp_dir, $blog_id, $file_name_sha1, $i);
-        if (file_exists($ed_chunk_path)) {
-            $result['uploaded_chunks']['chunk_' . $i] = md5_file($ed_chunk_path);
+    if (!$user_id || !$file_name || $count < 1 || $count > $max_chunks) {
+        return $result;
+    }
+
+    // 必须与分片上传及合并阶段使用相同的用户级命名空间。
+    $file_name_sha1 = md5($blog_id . '|' . $user_id . '|' . $file_name);
+
+    // 验证客户端记录的分片是否仍存在，并返回服务端计算的 MD5。
+    for ($i = 0; $i < $count; $i++) {
+        $chunk_path = sprintf('%s/%d-%s-%d.part', $temp_dir, $blog_id, $file_name_sha1, $i);
+        if (is_file($chunk_path) && is_readable($chunk_path)) {
+            $result['uploaded_chunks']['chunk_' . $i] = md5_file($chunk_path);
         }
     }
 
     $result['uploaded_count'] = count($result['uploaded_chunks']);
+
     return $result;
 }

@@ -18,13 +18,16 @@
  */
 function zibpay_ajax_rebate_user_detail()
 {
-    $user_id = get_current_user_id();
-    if (!$user_id) {
+    $current_id = get_current_user_id();
+    if (!$current_id) {
         return;
     }
 
-    //准备查询参数
-    $user_id       = !empty($_REQUEST['user_id']) ? (int) $_REQUEST['user_id'] : $user_id;
+    $user_id = !empty($_REQUEST['user_id']) ? (int) $_REQUEST['user_id'] : $current_id;
+    if ($user_id !== (int) $current_id && !is_super_admin()) {
+        zib_send_json_error(__('您无权限查看此信息', 'zib_language'));
+    }
+
     $paged         = zib_get_the_paged();
     $ice_perpage   = !empty($_REQUEST['ice_perpage']) ? (int) $_REQUEST['ice_perpage'] : 10;
     $rebate_status = isset($_REQUEST['rebate_status']) ? (int) $_REQUEST['rebate_status'] : '';

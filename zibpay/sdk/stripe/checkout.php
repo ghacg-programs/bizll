@@ -160,6 +160,7 @@ class StripeCheckout
         return array(
             'order_num' => $order_num,
             'pay_num'   => $pay_num,
+            'pay_price' => !empty($session['amount_total']) ? ((float) $session['amount_total'] / 100) : 0,
         );
     }
 
@@ -255,9 +256,10 @@ class StripeCheckout
  *
  * @param string $order_num
  * @param string $pay_num
+ * @param float|null $pay_price
  * @return array|false
  */
-function zibpay_stripe_payment_order($order_num, $pay_num)
+function zibpay_stripe_payment_order($order_num, $pay_num, $pay_price = null)
 {
     if (!$order_num || !$pay_num) {
         return false;
@@ -268,6 +270,9 @@ function zibpay_stripe_payment_order($order_num, $pay_num)
         'pay_type'  => 'stripe',
         'pay_num'   => $pay_num,
     );
+    if ($pay_price !== null) {
+        $pay_order_data['pay_price'] = $pay_price;
+    }
 
     return ZibPay::payment_order($pay_order_data);
 }

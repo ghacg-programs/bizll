@@ -536,7 +536,7 @@ function zibpay_uservip_paysuccess($values)
         return;
     }
 
-    $vip_product_id = !empty($pay_order->product_id) ? explode('_', $pay_order->product_id) : [];
+    $vip_product_id = explode('_', $pay_order->product_id);
     if (!isset($vip_product_id[0]) || !isset($vip_product_id[1]) || !isset($vip_product_id[2]) || 'vip' != $vip_product_id[0]) {
         return;
     }
@@ -917,7 +917,7 @@ function zib_get_user_vip_exp_date_text($user_id = 0)
         return false;
     }
 
-    if ('permanent' === strtolower((string)$vip_exp_date)) {
+    if ('permanent' === strtolower($vip_exp_date)) {
         return __('永久会员', 'zib_language');
     }
 

@@ -1,9 +1,25 @@
 <?php
-// v9.0 stub: 原版 ZibCodeUpdeta（远程更新核心）- 完全禁用
-class ZibCodeUpdeta
+/**
+ * Remote update check stub
+ * All updates disabled
+ */
+
+function zib_theme_update_check()
 {
-    public static function __callStatic($name, $arguments)
-    {
-        return false;
-    }
+    return false;
+}
+
+function zib_get_remote_version()
+{
+    return false;
+}
+
+function zib_theme_update_notice()
+{
+    return '';
+}
+
+function zib_check_remote_update()
+{
+    return false;
 }

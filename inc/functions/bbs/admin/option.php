@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-08-05 20:25:29
- * @LastEditTime : 2026-06-20 13:34:22
+ * @LastEditTime : 2026-08-25 20:10:23
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|论坛系统|后台功能配置
@@ -1511,7 +1511,7 @@ function zib_bbs_csf_admin_options()
                 ),
                 array(
                     'title'    => __('帖子扣分', 'zib_language'),
-                    'subtitle' => __('每个用户最扣几分', 'zib_language'),
+                    'subtitle' => __('每个用户最多扣几分', 'zib_language'),
                     'id'       => 'bbs_score_deduct_max',
                     'default'  => 3,
                     'type'     => 'spinner',

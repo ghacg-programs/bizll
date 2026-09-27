@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2022-11-26 14:17:26
- * @LastEditTime : 2026-01-02 18:58:21
+ * @LastEditTime : 2026-07-14 22:25:23
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|附件相关函数
@@ -20,6 +20,14 @@ function zib_media_attach_action($media, $parent_id)
 
     global $wpdb;
     $ids        = is_array($media) ? $media : array($media);
+
+    //全部转int
+    $ids = array_map('intval', $ids);
+
+    if(empty($ids)) {
+        return;
+    }
+
     $ids_string = implode(',', $ids);
 
     if (!$ids_string) {

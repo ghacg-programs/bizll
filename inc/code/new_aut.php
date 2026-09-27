@@ -1,4 +1,25 @@
 <?php
-// v9.0 stub: 原版 zib_init_add_action / zib_admin_tool_action
-function zib_init_add_action() {}
-function zib_admin_tool_action() {}
+/**
+ * 新授权检查存根
+ */
+
+function zib_new_aut_check()
+{
+    return true;
+}
+
+function zib_new_aut_verify()
+{
+    return true;
+}
+
+function zib_new_aut_status()
+{
+    return 'active';
+}
+
+function zib_new_aut_get_expire()
+{
+    // 空=永久，或填写日期
+    return '';
+}

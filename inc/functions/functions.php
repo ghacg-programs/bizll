@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:37
- * @LastEditTime : 2026-06-19 21:20:04
+ * @LastEditTime : 2026-08-28 12:53:53
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -449,8 +449,8 @@ function zib_new_dplayer($args, $echo = true)
     $option_attr = $option ? ' video-option=\'' . json_encode($option) . '\'' : '';
 
     $attr = 'video-url="' . $args['url'] . '"';
-    $attr .= $args['pic'] ? ' video-pic="' . $args['pic'] . '"' : '';
-    $attr .= $args['type'] ? ' video-type="' . $args['type'] . '"' : '';
+    $attr .= $args['pic'] ? ' video-pic="' . esc_url($args['pic']) . '"' : '';
+    $attr .= $args['type'] ? ' video-type="' . esc_attr($args['type']) . '"' : '';
     $attr .= $option_attr;
 
     if ($args['scale_height'] > 0) {
@@ -751,7 +751,7 @@ function zib_get_posts_meta($post = null)
     $meta         = '';
     $comment_href = '';
     $is_single    = is_single($post);
-    if (comments_open($post) && !_pz('close_comments')) {
+    if (zib_comment_is_show($post)) {
         if ($is_single) {
             $comment_href = 'javascript:(scrollTopTo(\'#comments\'));';
         } else {
@@ -1473,6 +1473,13 @@ function zib_get_social_type_data()
         'class'    => 'c-red',
         'name_key' => 'screen_name',
         'icon'     => 'fa fa-weibo',
+    );
+    $args['douyin'] = array(
+        'name'     => __('抖音', 'zib_language'),
+        'type'     => 'douyin',
+        'class'    => '',
+        'name_key' => 'nickname',
+        'icon'     => 'zibsvg-douyin',
     );
     $args['gitee'] = array(
         'name'     => __('码云', 'zib_language'),

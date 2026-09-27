@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-11-11 11:41:45
- * @LastEditTime : 2026-05-25 13:56:19
+ * @LastEditTime : 2026-08-02 14:00:08
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|后台文章编辑配置项，仅在后天引用
@@ -1845,7 +1845,7 @@ function zib_admin_widgets_register_menu_options()
         'fields' => array(
             array(
                 'id'    => 'icon',
-                'title' => __('图标', 'zib_language'),
+                'title' => __('图标前缀', 'zib_language'),
                 'type'  => 'icon',
             ),
             array(
@@ -1862,6 +1862,22 @@ function zib_admin_widgets_register_menu_options()
                 'default'    => 'jb-red',
                 'type'       => 'palette',
                 'options'    => CFS_Module::zib_palette(),
+            ),
+            array(
+                'id'         => 'show_policy',
+                'title'      => ' ',
+                'title'   => __('显示限制', 'zib_language'),
+                'desc'       => __('当用户满足条件时，菜单项才显示', 'zib_language'),
+                'default'    => '',
+                'inline'     => true,
+                'type'       => 'radio',
+                'options'    => array(
+                    ''       => __('不限制', 'zib_language'),
+                    'signin' => __('登录后显示', 'zib_language'),
+                    'vip'    => __('所有会员显示', 'zib_language'),
+                    'vip_2'  => __('二级会员显示', 'zib_language'),
+                    'auth'   => __('认证用户显示', 'zib_language'),
+                ),
             ),
             array(
                 'title'   => __('高级子菜单', 'zib_language'),

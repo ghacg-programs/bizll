@@ -476,6 +476,11 @@
     vertical-align: 0.1em;
 }
 
+.plate-header-wrap {
+    position: relative;
+    z-index: 2;
+}
+
 .forum-header {
     box-shadow: 0 0 10px var(--main-shadow);
     border-radius: var(--main-radius);

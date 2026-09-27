@@ -1,5 +1,26 @@
 <?php
-// v9.0 stub: 原版加载入口 + MD5完整性校验 - 已移除校验
-function zib_code_require() {}
-function zib_check_file_md5() { return true; }
-function zib_check_file_integrity() { return true; }
+/**
+ * Require loader stub
+ * MD5 file integrity checks removed
+ */
+
+$code_dir = dirname(__FILE__) . '/';
+require_once $code_dir . 'code.php';
+require_once $code_dir . 'aut.php';
+require_once $code_dir . 'file.php';
+require_once $code_dir . 'new_aut.php';
+require_once $code_dir . 'action.php';
+require_once $code_dir . 'update.php';
+
+class ZibToolRequire
+{
+    public static function __callStatic($name, $arguments)
+    {
+        return true;
+    }
+
+    public static function check()
+    {
+        return true;
+    }
+}

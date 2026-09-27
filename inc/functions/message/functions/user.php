@@ -269,10 +269,17 @@ function zib_get_user_msg_lists($user_id = '', $where = array(), $ajax_url = '',
     }
 
     //准备查询参数
-    $user_id     = !empty($_REQUEST['user_id']) ? $_REQUEST['user_id'] : $user_id;
-    $paged       = !empty($_REQUEST['paged']) ? $_REQUEST['paged'] : 1;
-    $ice_perpage = !empty($_REQUEST['ice_perpage']) ? $_REQUEST['ice_perpage'] : 12;
+    $paged       = !empty($_REQUEST['paged']) ? (int) $_REQUEST['paged'] : 1;
+    $ice_perpage = !empty($_REQUEST['ice_perpage']) ? (int) $_REQUEST['ice_perpage'] : 12;
     $offset      = $ice_perpage * ($paged - 1);
+
+    $request_user_id = !empty($_REQUEST['user_id']) ? (int) $_REQUEST['user_id'] : 0;
+    if ($request_user_id && (int) $request_user_id !== (int) $user_id && !is_super_admin()) {
+        $request_user_id = 0;
+    }
+    if ($request_user_id) {
+        $user_id = $request_user_id;
+    }
 
     $where['receive_user'] = zibmsg_get_receive_user_args($user_id);
     //获取数量和列表

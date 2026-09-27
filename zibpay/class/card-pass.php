@@ -30,8 +30,8 @@ class ZibCardPass
         if (!$wpdb->get_var("show tables like '{$wpdb->zibpay_card_password}'")) {
             $wpdb->query("CREATE TABLE $wpdb->zibpay_card_password (
                 `id` int(11) NOT NULL AUTO_INCREMENT,
-                `card` varchar(255) DEFAULT NULL COMMENT '卡号',
-                `password` varchar(255) DEFAULT NULL COMMENT '密码',
+                `card` varchar(50) DEFAULT NULL COMMENT '卡号',
+                `password` varchar(50) DEFAULT NULL COMMENT '密码',
                 `type` varchar(50) DEFAULT NULL COMMENT '类型',
                 `post_id` int(11) DEFAULT NULL COMMENT '商品id',
                 `order_num` varchar(50) DEFAULT NULL COMMENT '订单号',
@@ -47,72 +47,18 @@ class ZibCardPass
             $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`password`)"); //添加索引
             $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`type`)"); //添加索引
             $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`status`)"); //添加索引
-            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`other`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`other`(191))"); // LONGTEXT 字段使用索引前缀，兼容 MySQL/MariaDB。
             $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`create_time`,`modified_time`,`id`)"); //添加索引
             $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`post_id`,`order_num`,`id`)"); //添加索引
-        } else {
-            //老表结构自愈：缺列补齐 + card/password 扩容到 varchar(255)（幂等，transient 每天检查一次）
-            self::maybe_upgrade_schema();
-
-            //旧版本（7.0.5 及以前）建的表可能缺索引，补齐
-            if (version_compare(THEME_VERSION, '7.0.5', '<=') && !$wpdb->get_row("show index from {$wpdb->zibpay_card_password} WHERE Key_name = 'card'")) {
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`card`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`password`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`type`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`status`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`other`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`create_time`,`modified_time`,`id`)"); //添加索引
-                $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`post_id`,`order_num`,`id`)"); //添加索引
-            }
+        } elseif (version_compare(THEME_VERSION, '7.0.5', '<=') && !$wpdb->get_row("show index from {$wpdb->zibpay_card_password} WHERE Key_name = 'card'")) {
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`card`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`password`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`type`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`status`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`other`(191))"); // LONGTEXT 字段使用索引前缀，兼容 MySQL/MariaDB。
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`create_time`,`modified_time`,`id`)"); //添加索引
+            $wpdb->query("ALTER TABLE $wpdb->zibpay_card_password ADD INDEX(`post_id`,`order_num`,`id`)"); //添加索引
         }
-    }
-
-    //老表结构自愈：SHOW COLUMNS 后缺列 ALTER ADD + card/password varchar<255 时 MODIFY 到 255。幂等，每天检查一次。
-    private static function maybe_upgrade_schema()
-    {
-        $cache_key = 'zibpay_card_pass_schema_checked_v3';
-        if (false !== get_transient($cache_key)) {
-            return;
-        }
-
-        global $wpdb;
-        $table = $wpdb->zibpay_card_password;
-
-        $columns = $wpdb->get_results("SHOW COLUMNS FROM {$table}");
-        if (empty($columns)) {
-            return; //取不到结构则跳过，不落缓存，下次再试
-        }
-
-        $col_map = array();
-        foreach ($columns as $col) {
-            $col_map[$col->Field] = $col->Type;
-        }
-
-        //1) 缺列补齐（新版 INSERT 会带这些字段，老表可能缺，缺则 INSERT 静默失败）
-        $need_columns = array(
-            'type'          => "ADD `type` varchar(50) DEFAULT NULL COMMENT '类型'",
-            'post_id'       => "ADD `post_id` int(11) DEFAULT NULL COMMENT '商品id'",
-            'order_num'     => "ADD `order_num` varchar(50) DEFAULT NULL COMMENT '订单号'",
-            'create_time'   => "ADD `create_time` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间'",
-            'modified_time' => "ADD `modified_time` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '更新时间'",
-            'status'        => "ADD `status` varchar(50) DEFAULT NULL COMMENT '状态'",
-            'meta'          => "ADD `meta` longtext DEFAULT NULL COMMENT '元数据'",
-            'other'         => "ADD `other` longtext DEFAULT NULL COMMENT '其它'",
-        );
-        foreach ($need_columns as $field => $add_sql) {
-            if (!isset($col_map[$field])) {
-                $wpdb->query("ALTER TABLE {$table} {$add_sql}");
-            }
-        }
-
-        //2) card/password 长度不足 varchar(255) 时扩容（长 token/JWT/长卡号会被短 varchar 拒绝）
-        foreach (array('card', 'password') as $field) {
-            if (isset($col_map[$field]) && preg_match('/varchar\((\d+)\)/i', $col_map[$field], $m) && (int) $m[1] < 255) {
-                $wpdb->query("ALTER TABLE {$table} MODIFY `{$field}` varchar(255) DEFAULT NULL");
-            }
-        }
-
-        set_transient($cache_key, 1, DAY_IN_SECONDS);
     }
 
     //新增

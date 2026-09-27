@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-12-23 22:31:32
- * @LastEditTime : 2026-06-22 11:27:21
+ * @LastEditTime : 2026-08-25 12:10:27
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|前置依赖函数
@@ -103,6 +103,39 @@ add_filter('determine_locale', 'zib_filter_split_locale', 10);
 add_filter('user_locale', 'zib_filter_split_locale', 10);
 
 /**
+ * 手动切换到前台语言
+ * @param string $locale
+ * @return string
+ */
+function zib_switch_to_frontend_locale()
+{
+    //获取当前语言
+    $current_locale = get_locale();
+    //保存到全局变量
+    $GLOBALS['zib_current_locale'] = $current_locale;
+
+    if (!_pz('locale_split_s')) {
+        return;
+    }
+
+    $locale = _pz('locale_frontend', 'en_US');
+    switch_to_locale($locale);
+}
+
+/**
+ * 恢复到原来的语言
+ * @return void
+ */
+function zib_restore_previous_locale()
+{
+    if (isset($GLOBALS['zib_current_locale'])) {
+        switch_to_locale($GLOBALS['zib_current_locale']);
+        unset($GLOBALS['zib_current_locale']);
+    }
+}
+add_action('shutdown', 'zib_restore_previous_locale');
+
+/**
  * @description: 获取模板页面的URL
  * @param {*} $template 模板路径
  * @param {*} $args 模板参数
@@ -193,7 +226,7 @@ function zib_get_user_integral_add_options()
 }
 
 /**
- * 从 'zibll_options' 数组中检索特定选项的值。
+ * 从 'zibll_options' 数组中检索特定选项的值
  *
  * @param string $name     选项的名称。
  * @param mixed  $default  如果未找到选项，则返回的默认值。
@@ -248,6 +281,7 @@ function zib_get_option_meta_keys($type)
         'weixin',
         'weixingzh',
         'weibo',
+        'douyin',
         'gitee',
         'baidu',
         'alipay',

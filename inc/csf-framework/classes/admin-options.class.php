@@ -484,13 +484,14 @@ if (!class_exists('CSF_Options')) {
         }
       }
 
-      add_filter('admin_footer_text', array(&$this, 'add_admin_footer_text'));
+      if(!empty($this->args['footer_credit'])) {
+        add_filter('admin_footer_text', array(&$this, 'add_admin_footer_text'));
+      }
     }
 
     public function add_admin_footer_text()
     {
-      $default = 'Thank you for creating with <a href="http://codestarframework.com/" target="_blank">Codestar Framework</a>';
-      echo (!empty($this->args['footer_credit'])) ? $this->args['footer_credit'] : $default;
+      echo (!empty($this->args['footer_credit'])) ? $this->args['footer_credit'] : '';
     }
 
     public function error_check($sections, $err = '')

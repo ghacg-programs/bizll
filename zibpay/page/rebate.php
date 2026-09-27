@@ -19,6 +19,8 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+global $wpdb;
+
 $order_url = admin_url('admin.php?page=zibpay_rebate_page');
 $desc_url  = $order_url;
 $s         = !empty($_POST['s']) ? $_POST['s'] : (!empty($_GET['s']) ? $_GET['s'] : false);
@@ -26,26 +28,34 @@ $s         = !empty($_POST['s']) ? $_POST['s'] : (!empty($_GET['s']) ? $_GET['s'
 $WHERE = '';
 
 if ($s) {
-    $WHERE = "WHERE
-     `pay_num` LIKE '%$s%' OR
-     `order_num` LIKE '%$s%' OR
-     `other` LIKE '%$s%' OR
-     `user_id` LIKE '%$s%' OR
-     `post_id` LIKE '%$s%'";
+    $like  = '%' . $wpdb->esc_like(wp_unslash($s)) . '%';
+    $WHERE = $wpdb->prepare(
+        "WHERE
+     `pay_num` LIKE %s OR
+     `order_num` LIKE %s OR
+     `other` LIKE %s OR
+     `user_id` LIKE %s OR
+     `post_id` LIKE %s",
+        $like,
+        $like,
+        $like,
+        $like,
+        $like
+    );
     $desc_url = $order_url . '&amp;s=' . $s;
 } else {
 }
 
-$WHERE_status = !empty($_GET['status']) ? $_GET['status'] : false;
+$WHERE_status = !empty($_GET['status']) ? (int) $_GET['status'] : 0;
 if ($WHERE_status) {
-    $WHERE = "WHERE
-     `status` = $WHERE_status";
+    $WHERE = $wpdb->prepare("WHERE
+     `status` = %d", $WHERE_status);
     $desc_url = $order_url . '&amp;status=' . $WHERE_status;
 }
-$WHERE_order_type = !empty($_GET['order_type']) ? $_GET['order_type'] : false;
+$WHERE_order_type = !empty($_GET['order_type']) ? (int) $_GET['order_type'] : 0;
 if ($WHERE_order_type) {
-    $WHERE = "WHERE
-     `order_type` = $WHERE_order_type";
+    $WHERE = $wpdb->prepare("WHERE
+     `order_type` = %d", $WHERE_order_type);
     $desc_url = $order_url . '&amp;order_type=' . $WHERE_order_type;
 }
 
@@ -73,7 +83,6 @@ if (isset($_GET['user_id'])) {
 }
 
 //////////
-global $wpdb;
 $WHERE = $WHERE ? $WHERE . ' and `rebate_price` <> 0 and `status` = 1' : 'WHERE `rebate_price` > 0 and `status` = 1';
 
 //统计数据
@@ -84,10 +93,10 @@ $ice_perpage = 20;
 $pages       = ceil($total_trade / $ice_perpage);
 $page        = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
 $offset      = $ice_perpage * ($page - 1);
-$order       = !empty($_GET['orderby']) ? $_GET['orderby'] : 'pay_time';
-$desc        = !empty($_GET['desc']) ? $_GET['desc'] : 'DESC';
+$order       = zibpay_sanitize_admin_orderby(!empty($_GET['orderby']) ? $_GET['orderby'] : 'pay_time');
+$desc        = zibpay_sanitize_admin_order_dir(!empty($_GET['desc']) ? $_GET['desc'] : 'DESC');
 
-$list = $wpdb->get_results("SELECT * FROM $wpdb->zibpay_order $WHERE order by $order $desc limit $offset,$ice_perpage");
+$list = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->zibpay_order} $WHERE ORDER BY `$order` $desc LIMIT %d,%d", $offset, $ice_perpage));
 
 //echo  json_encode($list);
 //echo "SELECT * FROM $wpdb->zibpay_order $WHERE order by $order $desc limit $offset,$ice_perpage";

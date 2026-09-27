@@ -101,17 +101,10 @@ const poster = (function () {
 
         const logo = new Image();
         var logoLoadCount = 0;
-        logo.crossOrigin = 'Anonymous';
-        logo.src = config.logo;
-        logo.onerror = function () {
-            logoLoadCount++;
-            if (logoLoadCount < 3) {
-                logo.src = config.logo;
-            }
-        };
+        var bannerReady = false;
+        var logoReady = !config.logo;
 
         const qrcode = new Image();
-        qrcode.src = config.qrcode;
 
         var loadCount = 0;
         const setSrc = function () {
@@ -126,11 +119,14 @@ const poster = (function () {
             }
             onload();
         };
-        const onload = function () {
+        const tryDraw = function () {
+            if (!bannerReady || !logoReady) {
+                return;
+            }
+
             $canvas.width = WIDTH;
             $canvas.height = HEIGHT;
-            image.onload = function () {
-                const ctx = $canvas.getContext('2d');
+            const ctx = $canvas.getContext('2d');
                 ctx.fillStyle = 'rgba(255, 255, 255, 1)';
                 ctx.fillRect(0, 0, $canvas.width, $canvas.height);
 
@@ -219,32 +215,40 @@ const poster = (function () {
                 ctx.rect(30, $canvas.height - 230, $canvas.width - 60, 200);
                 ctx.stroke();
 
+            if (logo.naturalWidth) {
                 const logoRect = containImg(80, $canvas.height - 190, 300, 100, logo.width, logo.height);
                 ctx.drawImage(logo, logoRect.dx, logoRect.dy, logoRect.dWidth, logoRect.dHeight);
+            }
 
-                ctx.drawImage(qrcode, $canvas.width - 200, $canvas.height - 200, 120, 120);
+            ctx.drawImage(qrcode, $canvas.width - 200, $canvas.height - 200, 120, 120);
 
-                ctx.drawImage($description, 0, $canvas.height - 60);
+            ctx.drawImage($description, 0, $canvas.height - 60);
 
-                const img = new Image();
-                img.crossOrigin = 'Anonymous';
-                img.src = $canvas.toDataURL('image/png');
-                const radio = config.radio || 0.7;
-                img.width = WIDTH * radio;
-                img.height = HEIGHT * radio;
-                img.className = 'loaded-img';
-                ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-                $canvas.style.display = 'none';
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = $canvas.toDataURL('image/png');
+            const radio = config.radio || 0.7;
+            img.width = WIDTH * radio;
+            img.height = HEIGHT * radio;
+            img.className = 'loaded-img';
+            ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+            $canvas.style.display = 'none';
 
-                if ($container.querySelector('.loaded-img')) {
-                    $container.querySelector('.loaded-img').src = img.src;
-                } else {
-                    $container.appendChild(img);
-                }
+            if ($container.querySelector('.loaded-img')) {
+                $container.querySelector('.loaded-img').src = img.src;
+            } else {
+                $container.appendChild(img);
+            }
 
-                $container.removeChild($wrapper);
-                $container.classList.add('loaded');
-                $.isFunction(config.callback) && config.callback($container);
+            $container.removeChild($wrapper);
+            $container.classList.add('loaded');
+            $.isFunction(config.callback) && config.callback($container);
+        };
+
+        const onload = function () {
+            image.onload = function () {
+                bannerReady = true;
+                tryDraw();
             };
             image.onerror = function () {
                 loadCount++;
@@ -254,6 +258,26 @@ const poster = (function () {
                 setSrc();
             };
         };
+
+        logo.crossOrigin = 'Anonymous';
+        logo.onload = function () {
+            logoReady = true;
+            tryDraw();
+        };
+        logo.onerror = function () {
+            logoLoadCount++;
+            if (logoLoadCount < 3) {
+                logo.src = config.logo;
+            } else {
+                logoReady = true;
+                tryDraw();
+            }
+        };
+        if (config.logo) {
+            logo.src = config.logo;
+        }
+
+        qrcode.src = config.qrcode;
 
         setSrc();
     }

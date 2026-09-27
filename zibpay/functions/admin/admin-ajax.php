@@ -663,7 +663,7 @@ function zibpay_ajax_order_query($args = [])
     $order         = !empty($_REQUEST['order']) ? $_REQUEST['order'] : 'desc'; //排序
     $order         = $order == 'asc' || $order == 'ascending' ? 'ASC' : 'DESC';
     $orderby       = !empty($_REQUEST['orderby']) ? $_REQUEST['orderby'] : 'id'; //排序值
-    $search        = !empty($_REQUEST['search']) ? (trim($_REQUEST['search'] ?? '')) : ''; //搜索
+    $search        = !empty($_REQUEST['search']) ? (trim($_REQUEST['search'])) : ''; //搜索
     $search_filter = !empty($_REQUEST['search_filter']) ? $_REQUEST['search_filter'] : '';
 
     $query_args = array_merge([
@@ -937,10 +937,11 @@ function zibpay_ajax_admin_payment_submit()
 
     //执行补单
     $pay_data = array(
-        'order_num' => $order_num,
-        'pay_type'  => $payment_method,
-        'pay_price' => $pay_price,
-        'pay_num'   => $pay_num,
+        'order_num'               => $order_num,
+        'pay_type'                => $payment_method,
+        'pay_price'               => $pay_price,
+        'pay_num'                 => $pay_num,
+        'skip_pay_amount_check'   => true,
     );
 
     // 执行补单

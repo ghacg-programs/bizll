@@ -91,12 +91,10 @@ function zibpay_generate_coupon($type = 'coupon', $num = 20, $post_id = 0, $meta
 //获取优惠码折扣描述
 function zibpay_get_coupon_discount_text($discount)
 {
-    $type = is_array($discount) && isset($discount['type']) ? $discount['type'] : '';
-    $val  = is_array($discount) && isset($discount['val']) ? (float) $discount['val'] : 0;
-    if ($type == 'multiply') {
-        return ($val * 10) . __('折', 'zib_language');
+    if ($discount['type'] == 'multiply') {
+        return ($discount['val'] * 10) . __('折', 'zib_language');
     } else {
-        return sprintf(__('立减%s', 'zib_language'), $val);
+        return sprintf(__('立减%s', 'zib_language'), $discount['val']);
     }
 }
 
@@ -233,7 +231,7 @@ function zibpay_payment_order_use_coupon($order)
     }
 
     $coupon                        = zibpay_filter_coupon_data($coupon);
-    $meta_data                     = $coupon['meta'] ?? [];
+    $meta_data                     = $coupon['meta'];
     $meta_data['used_count']       = ($meta_data['used_count'] ?? 0) + 1;
     $meta_data['used_order_num'][] = $order->order_num;
 

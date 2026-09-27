@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:37
- * @LastEditTime : 2026-07-02 11:51:49
+ * @LastEditTime : 2026-08-02 14:09:51
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -62,6 +62,40 @@ function zib_get_comments_user_name($comment)
     $badge = apply_filters('comments_user_name_badge', $badge, $comment);
 
     return '<name class="flex ac flex1">' . $topping_badge . $user_name . $badge . '</name>';
+}
+
+//获取评论模块是否显示
+function zib_comment_is_show($post = null)
+{
+    if (_pz('close_comments')) {
+        return false;
+    }
+
+    if (isset($post->comment_status) && !comments_open($post)) {
+        return false;
+    }
+
+    $policy = _pz('comment_box_hide');
+    if (!$policy) {
+        return true;
+    }
+
+    $user_id = get_current_user_id();
+    switch ($policy) {
+        case 'signin':
+            return (bool) $user_id;
+
+        case 'vip':
+            return $user_id && zib_get_user_vip_level($user_id);
+
+        case 'vip_2':
+            return $user_id && 2 == zib_get_user_vip_level($user_id);
+
+        case 'auth':
+            return $user_id && zib_is_user_auth($user_id);
+    }
+
+    return true;
 }
 
 //获取主评论的头部

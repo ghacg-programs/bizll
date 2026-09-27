@@ -215,16 +215,32 @@ function zib_test_send_mail()
     $message .= __('该邮件由网站后台发出，如果非您本人操作，请忽略此邮件', 'zib_language') . ' <br />';
     $message .= current_time('Y-m-d H:i:s');
 
+    // wp_mail 内部会捕获 PHPMailer 异常并触发 wp_mail_failed，再返回 false
+    $mail_error     = '';
+    $on_mail_failed = function ($wp_error) use (&$mail_error) {
+        if (is_wp_error($wp_error)) {
+            $mail_error = $wp_error->get_error_message();
+        }
+    };
+    add_action('wp_mail_failed', $on_mail_failed);
+
     try {
         $test = wp_mail($_POST['email'], $title, $message);
     } catch (\Exception $e) {
-        echo array('error' => 1, 'msg' => $e->getMessage());
-        exit();
+        $mail_error = $e->getMessage();
+        $test       = false;
     }
+
+    remove_action('wp_mail_failed', $on_mail_failed);
+
     if ($test) {
         echo(json_encode(array('error' => 0, 'msg' => __('后台已操作', 'zib_language'))));
     } else {
-        echo(json_encode(array('error' => 1, 'msg' => __('发送失败', 'zib_language'))));
+        $msg = __('发送失败', 'zib_language');
+        if ($mail_error) {
+            $msg .= '<br>' . sprintf(__('失败原因：%s', 'zib_language'), esc_html($mail_error));
+        }
+        echo(json_encode(array('error' => 1, 'msg' => $msg)));
     }
     exit();
 }
@@ -305,54 +321,75 @@ add_action('wp_ajax_options_import', 'zib_ajax_options_import');
 //备份主题设置
 function zib_ajax_options_backup()
 {
+    if (!current_user_can('edit_theme_options')) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('操作权限不足', 'zib_language')));
+    }
 
-    $type   = !empty($_REQUEST['type']) ? $_REQUEST['type'] : '手动备份';
-    $backup = zib_options_backup($type);
-    echo(json_encode(array('error' => 0, 'reload' => 1, 'msg' => __('当前配置已经备份', 'zib_language'))));
-    exit();
+    zib_ajax_verify_nonce();
+
+    $type = !empty($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : __('手动备份', 'zib_language');
+
+    if (!zib_options_backup($type)) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('主题配置备份失败', 'zib_language')));
+    }
+
+    wp_send_json_success(array('reload' => 1, 'msg' => __('当前配置已经备份', 'zib_language')));
 }
 add_action('wp_ajax_options_backup', 'zib_ajax_options_backup');
 
 function zib_ajax_options_backup_delete()
 {
-
     if (!is_super_admin()) {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('操作权限不足', 'zib_language'))));
-        exit();
-    }
-    if (empty($_REQUEST['key'])) {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('参数传入错误', 'zib_language'))));
-        exit();
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('操作权限不足', 'zib_language')));
     }
 
-    $prefix = 'zibll_options';
-    if ('options_backup_delete_all' == $_REQUEST['action']) {
+    zib_ajax_verify_nonce();
+
+    $action          = isset($_POST['action']) ? sanitize_key(wp_unslash($_POST['action'])) : '';
+    $allowed_actions = array(
+        'options_backup_delete',
+        'options_backup_delete_all',
+        'options_backup_delete_surplus',
+    );
+
+    if (!in_array($action, $allowed_actions, true)) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('请求类型错误', 'zib_language')));
+    }
+
+    $prefix         = 'zibll_options';
+    $options_backup = get_option($prefix . '_backup', array());
+
+    if ('options_backup_delete_all' === $action) {
         update_option($prefix . '_backup', false);
-        echo(json_encode(array('error' => 0, 'reload' => 1, 'msg' => __('已删除全部备份数据', 'zib_language'))));
-        exit();
+        wp_send_json_success(array('reload' => 1, 'msg' => __('已删除全部备份数据', 'zib_language')));
     }
 
-    $options_backup = get_option($prefix . '_backup');
-
-    if ('options_backup_delete_surplus' == $_REQUEST['action']) {
-        if ($options_backup) {
-            $options_backup = array_reverse($options_backup);
-            update_option($prefix . '_backup', array_reverse(array_slice($options_backup, 0, 3)));
-            echo(json_encode(array('error' => 0, 'reload' => 1, 'msg' => __('已删除多余备份数据，仅保留最新3份', 'zib_language'))));
-            exit();
-        }
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('暂无可删除的数据', 'zib_language'))));
+    if (!is_array($options_backup) || empty($options_backup)) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('暂无可删除的数据', 'zib_language')));
     }
 
-    if (isset($options_backup[$_REQUEST['key']])) {
-        unset($options_backup[$_REQUEST['key']]);
+    if ('options_backup_delete_surplus' === $action) {
+        $options_backup = array_reverse($options_backup, true);
+        $options_backup = array_slice($options_backup, 0, 3, true);
+        $options_backup = array_reverse($options_backup, true);
 
         update_option($prefix . '_backup', $options_backup);
-        echo(json_encode(array('error' => 0, 'reload' => 1, 'msg' => __('所选备份已删除', 'zib_language'))));
-    } else {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('此备份已删除', 'zib_language'))));
+        wp_send_json_success(array('reload' => 1, 'msg' => __('已删除多余备份数据，仅保留最新3份', 'zib_language')));
     }
-    exit();
+
+    $key = isset($_POST['key']) ? sanitize_text_field(wp_unslash($_POST['key'])) : '';
+    if ('' === $key) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('参数传入错误', 'zib_language')));
+    }
+
+    if (!isset($options_backup[$key])) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('此备份已删除', 'zib_language')));
+    }
+
+    unset($options_backup[$key]);
+    update_option($prefix . '_backup', $options_backup);
+
+    wp_send_json_success(array('reload' => 1, 'msg' => __('所选备份已删除', 'zib_language')));
 }
 add_action('wp_ajax_options_backup_delete', 'zib_ajax_options_backup_delete');
 add_action('wp_ajax_options_backup_delete_all', 'zib_ajax_options_backup_delete');
@@ -361,23 +398,28 @@ add_action('wp_ajax_options_backup_delete_surplus', 'zib_ajax_options_backup_del
 function zib_ajax_options_backup_restore()
 {
     if (!is_super_admin()) {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('操作权限不足', 'zib_language'))));
-        exit();
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('操作权限不足', 'zib_language')));
     }
-    if (empty($_REQUEST['key'])) {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('参数传入错误', 'zib_language'))));
-        exit();
+
+    zib_ajax_verify_nonce();
+
+    $key = isset($_POST['key']) ? sanitize_text_field(wp_unslash($_POST['key'])) : '';
+    if ('' === $key) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('参数传入错误', 'zib_language')));
     }
 
     $prefix         = 'zibll_options';
-    $options_backup = get_option($prefix . '_backup');
-    if (isset($options_backup[$_REQUEST['key']]['data'])) {
-        update_option($prefix, $options_backup[$_REQUEST['key']]['data']);
-        echo(json_encode(array('error' => 0, 'reload' => 1, 'msg' => sprintf(__('主题设置已恢复到所选备份[%s]', 'zib_language'), $_REQUEST['key']))));
-    } else {
-        echo(json_encode(array('error' => 1, 'ys' => 'danger', 'msg' => __('备份恢复失败，未找到对应数据', 'zib_language'))));
+    $options_backup = get_option($prefix . '_backup', array());
+
+    if (!is_array($options_backup) || !isset($options_backup[$key]['data']) || !is_array($options_backup[$key]['data'])) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('备份恢复失败，未找到对应数据', 'zib_language')));
     }
-    exit();
+
+    if (!update_option($prefix, $options_backup[$key]['data'])) {
+        wp_send_json_error(array('ys' => 'danger', 'msg' => __('主题设置恢复失败或配置未发生变化', 'zib_language')));
+    }
+
+    wp_send_json_success(array('reload' => 1, 'msg' => sprintf(__('主题设置已恢复到所选备份[%s]', 'zib_language'), $key)));
 }
 add_action('wp_ajax_options_backup_restore', 'zib_ajax_options_backup_restore');
 

@@ -3,7 +3,7 @@
  * @Author       : Qinver
  * @Url          : zibll.com
  * @Date         : 2025-02-24 14:02:36
- * @LastEditTime : 2026-05-25 16:27:52
+ * @LastEditTime : 2026-08-25 20:16:37
  * @Project      : Zibll子比主题
  * @Description  : 更优雅的Wordpress主题 | 订单处理
  * Copyright (c) 2025 by Qinver, All Rights Reserved.
@@ -242,7 +242,7 @@ function zib_shop_get_confirm_data($products_items = null)
     $discount_data = [];
     $total_data    = [
         'points_mark'     => zibpay_get_points_mark(),
-        'pay_mark'        => $zib_shop->currency_symbol,
+        'pay_mark'        => zibpay_get_pay_mark(),
         'shipping_fee'    => 0, //总运费
         'count'           => 0,
         'price_count'     => 0,

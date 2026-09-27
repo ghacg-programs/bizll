@@ -37,6 +37,7 @@ if ($rsaCheck && $_POST['trade_status'] == 'TRADE_SUCCESS') {
     $pay = array(
         'order_num' => $_POST['out_trade_no'],
         'pay_type'  => 'alipay',
+        'pay_price' => $_POST['total_amount'],
         'pay_num'   => $_POST['trade_no'],
     );
 

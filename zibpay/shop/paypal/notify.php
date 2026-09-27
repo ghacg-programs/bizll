@@ -76,7 +76,7 @@ if (empty($parsed['pay_num'])) {
     $parsed['pay_num'] = !empty($resource['id']) ? $resource['id'] : $parsed['order_num'];
 }
 
-$result = zibpay_paypal_rest_payment_order($parsed['order_num'], $parsed['pay_num']);
+$result = zibpay_paypal_rest_payment_order($parsed['order_num'], $parsed['pay_num'], isset($parsed['pay_price']) ? $parsed['pay_price'] : 0);
 if ($result === false) {
     http_response_code(400);
     echo 'fail';

@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2021-08-05 20:25:29
- * @LastEditTime : 2026-05-05 21:49:57
+ * @LastEditTime : 2026-08-25 21:12:01
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题|论坛系统|版块类函数|plate
@@ -103,7 +103,8 @@ function zib_bbs_get_plate_header($plate_id = 0, $class = '', $show_cat = true)
         $cat_link = '<div class="mb6"><span class="badg badg-sm b-red"><i class="fa fa-trash-o mr3"></i>' . __('已删除', 'zib_language') . '</span></div>';
     }
 
-    $html = '<div class="forum-header blur-header relative-h mb20' . $class . '">';
+    $html = '<div class="plate-header-wrap">';
+    $html .= '<div class="forum-header blur-header relative-h mb20' . $class . '">';
     $html .= $blur_bg;
     $html .= $hot;
     $html .= $more_dropdown;
@@ -121,6 +122,7 @@ function zib_bbs_get_plate_header($plate_id = 0, $class = '', $show_cat = true)
     $html .= '</div>';
     $html .= $moderator_btns;
 
+    $html .= '</div>';
     $html .= '</div>';
     $html .= '</div>';
 
@@ -1544,7 +1546,7 @@ function zib_bbs_get_plate_header_more_btn($plate_id, $class = '', $show_follow 
     $html .= $share ? $share : '';
 
     //更多按钮
-    $dropdown = zib_bbs_get_plate_more_dropdown($plate_id, 'pull-right', 'item mr3');
+    $dropdown = zib_bbs_get_plate_more_dropdown($plate_id, 'pull-right drop-fixed-sm', 'item mr3');
     $html .= $dropdown ? $dropdown : '';
 
     if (!$html) {
@@ -1664,9 +1666,7 @@ function zib_bbs_plate_page_mobile_header()
 
     $plate_header = zib_bbs_get_plate_header();
 
-    $html = '<div class="">';
-    $html .= $plate_header;
-    $html .= '</div>';
+    $html = $plate_header;
     echo $html;
 }
 add_action('bbs_plate_page_content', 'zib_bbs_plate_page_mobile_header');

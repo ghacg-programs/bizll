@@ -1,31 +1,16 @@
 <?php
-
+/**
+ * ZibAut - Authorization stub
+ * All authorization checks return true
+ */
 class ZibAut
 {
-    public static function get_aut_url()
-    {
-        return function_exists('home_url') ? home_url() : '127.0.0.1';
-    }
+    // 可在此修改授权有效期：空字符串=永久，具体日期格式 Y-m-d
+    private static $expire_date = '';   // 例如改为 '2099-01-01'
 
-    public static function get_home_url()
+    public static function __callStatic($name, $arguments)
     {
-        return function_exists('home_url') ? home_url() : '127.0.0.1';
-    }
-
-    public static function replace_url($url)
-    {
-        return $url;
-    }
-
-    public static function top_host($url)
-    {
-        $host = is_string($url) ? parse_url($url, PHP_URL_HOST) : '';
-        return $host ?: '';
-    }
-
-    public static function is_local()
-    {
-        return false;
+        return true;
     }
 
     public static function is_aut()
@@ -33,144 +18,41 @@ class ZibAut
         return true;
     }
 
-    public static function aut_required()
+    public static function is_local()
     {
-        return array();
+        return false;
     }
 
-    public static function is_ok($data = null)
+    public static function is_active()
     {
         return true;
     }
 
-    public static function is_singok($data = null)
+    public static function get_aut_url()
     {
-        return true;
+        $url = function_exists('home_url') ? home_url() : '127.0.0.1';
+        // 去掉协议
+        return preg_replace('#^https?://#', '', $url);
     }
 
     public static function get_aut_time()
     {
-        return '';
+        return self::$expire_date;
     }
 
-    public static function get_zat_end_time()
-    {
-        return '';
-    }
-
-    public static function save_zat_end_time($result_data = null)
-    {
-        return true;
-    }
-
-    public static function timing_aut()
-    {
-        return true;
-    }
-
-    public static function save_aut_code($aut_code = '')
-    {
-        return true;
-    }
-
-    public static function get_aut_code()
-    {
-        return '';
-    }
-
-    public static function get_aut_code_sign($aut_code = '')
-    {
-        return is_string($aut_code) ? md5($aut_code) : '';
-    }
-
-    public static function curl_aut($aut_code = null)
-    {
-        return array('error' => 0, 'data' => array());
-    }
-
-    public static function curl_aut_data($aut_code = '')
-    {
-        return array('error' => 0, 'data' => array());
-    }
-
-    public static function http_request($url = '', $data = array())
+    public static function is_update()
     {
         return false;
     }
 
-    public static function update_ok($result = null)
+    public static function get_aut_data()
     {
-        return true;
-    }
-
-    public static function delete()
-    {
-        return true;
-    }
-
-    public static function get_theme_version()
-    {
-        return defined('THEME_VERSION') ? THEME_VERSION : '';
-    }
-
-    public static function get_download_url()
-    {
-        return '';
-    }
-
-    public static function curl_update($skip_flag = false)
-    {
-        return array('error' => 0, 'data' => array());
-    }
-
-    public static function update_save_data($result_obj = null, $skip_flag = false)
-    {
-        return true;
-    }
-
-    public static function timing_update()
-    {
-        return true;
-    }
-
-    public static function is_update($result = 'null')
-    {
-        return false;
-    }
-
-    public static function skip_update()
-    {
-        return true;
-    }
-
-    public static function noaut_update()
-    {
-        return true;
-    }
-
-    public static function noaut_notice()
-    {
-        return '';
-    }
-
-    public static function admin_js()
-    {
-        return '';
-    }
-
-    public static function footer_html()
-    {
-        return '';
-    }
-
-    public static function csf_save($data = array())
-    {
-        return $data;
-    }
-
-    public static function __callStatic($name, $arguments)
-    {
-        return true;
+        return array(
+            'status'  => 'active',
+            'domain'  => self::get_aut_url(),
+            'time'    => self::get_aut_time(),
+            'version' => defined('THEME_VERSION') ? THEME_VERSION : '8.8.1',
+        );
     }
 }
 

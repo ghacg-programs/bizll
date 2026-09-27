@@ -3,13 +3,13 @@
  * @Author: Qinver
  * @Url: zibll.com
  * @Date: 2021-04-11 21:36:20
- * @LastEditTime : 2026-06-18 11:05:15
+ * @LastEditTime : 2026-08-02 14:11:45
  */
 defined('ABSPATH') or die();
 
 global $post;
 $post_id = $post->ID;
-if (!comments_open($post_id) || _pz('close_comments')) {
+if (!zib_comment_is_show($post)) {
 	return;
 }
 

@@ -3,7 +3,7 @@
  * @Author        : Qinver
  * @Url           : zibll.com
  * @Date          : 2020-09-29 13:18:38
- * @LastEditTime : 2026-06-17 19:03:37
+ * @LastEditTime : 2026-07-12 14:02:14
  * @Email         : 770349780@qq.com
  * @Project       : Zibll子比主题
  * @Description   : 一款极其优雅的Wordpress主题
@@ -450,6 +450,7 @@ function zib_single_content_footer_action()
     $user_id         = get_the_author_meta('ID');
     $favorite_button = zib_get_post_favorite('action action-favorite');
 
+    echo '<div class="post-actions-wrap">';
     echo '<div class="text-center muted-3-color box-body em09">' . _pz('post_button_toptext', __('喜欢就支持一下吧', 'zib_language')) . '</div>';
     echo '<div class="text-center post-actions">';
     if (_pz('post_like_s')) {
@@ -463,5 +464,6 @@ function zib_single_content_footer_action()
     }
 
     echo $favorite_button;
+    echo '</div>';
     echo '</div>';
 }

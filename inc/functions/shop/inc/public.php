@@ -1,41 +1,147 @@
 <?php
+/**
+ * Shop public utility functions (local replacement)
+ */
 
-if (!function_exists('zib_shop_get_product')) {
-    function zib_shop_get_product($product_id = 0)
-    {
-        if (!$product_id) {
-            return false;
+/**
+ * Check if zibpay_order table exists (cached within the same request)
+ */
+function zib_shop_check_order_table_exists() {
+    static $exists = null;
+    if ($exists === null) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'zibpay_order';
+        $exists = ($wpdb->get_var("SHOW TABLES LIKE '$table'") === $table);
+    }
+    return $exists;
+}
+
+/**
+ * Get shop order type constant
+ */
+function zib_shop_get_order_type()
+{
+    return '10';
+}
+
+/**
+ * Get shop home URL
+ */
+function zib_shop_get_home_url()
+{
+    static $url = null;
+    if ($url === null) {
+        $pages = get_pages(array(
+            'meta_key'   => '_wp_page_template',
+            'meta_value' => 'pages/shop-home.php',
+        ));
+        if (!empty($pages[0])) {
+            $url = get_permalink($pages[0]->ID);
+        } else {
+            // Try shop archive
+            $url = get_post_type_archive_link('shop_product');
+            if (!$url) {
+                $url = home_url('/shop/');
+            }
         }
-        return get_post($product_id);
     }
+    return $url;
 }
 
-if (!function_exists('zib_shop_is_enabled')) {
-    function zib_shop_is_enabled()
-    {
-        return function_exists('_pz') ? (bool) _pz('shop_s') : false;
-    }
+/**
+ * Get express/shipping companies data
+ */
+function zib_shop_get_express_companies_data()
+{
+    return array(
+        'SF'      => array('name' => '顺丰速运', 'code' => 'SF'),
+        'YTO'     => array('name' => '圆通速递', 'code' => 'YTO'),
+        'ZTO'     => array('name' => '中通快递', 'code' => 'ZTO'),
+        'STO'     => array('name' => '申通快递', 'code' => 'STO'),
+        'YD'      => array('name' => '韵达速递', 'code' => 'YD'),
+        'JTSD'    => array('name' => '极兔速递', 'code' => 'JTSD'),
+        'EMS'     => array('name' => 'EMS', 'code' => 'EMS'),
+        'YZPY'    => array('name' => '邮政包裹', 'code' => 'YZPY'),
+        'DBL'     => array('name' => '德邦快递', 'code' => 'DBL'),
+        'JD'      => array('name' => '京东物流', 'code' => 'JD'),
+        'OTHER'   => array('name' => '其他', 'code' => 'OTHER'),
+    );
 }
 
-if (!function_exists('zib_shop_get_product_price')) {
-    function zib_shop_get_product_price($product_id = 0)
-    {
-        $config = get_post_meta($product_id, 'product_config', true);
-        return isset($config['price']) ? floatval($config['price']) : 0;
+/**
+ * Get after-sale status count
+ */
+function zib_shop_get_after_sale_status_count($status = '')
+{
+    // Check if table exists (cached)
+    if (!zib_shop_check_order_table_exists()) {
+        return 0;
     }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'zibpay_order';
+    $order_type = zib_shop_get_order_type();
+
+    if (is_array($status)) {
+        $count = 0;
+        foreach ($status as $s) {
+            $like = '%"after_sale_status";s:1:"' . esc_sql($s) . '"%';
+            $c = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table WHERE order_type = %s AND status = 1 AND other LIKE %s",
+                $order_type, $like
+            ));
+            $count += (int) $c;
+        }
+        return $count;
+    }
+
+    $like = '%"after_sale_status";s:1:"' . esc_sql($status) . '"%';
+    return (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $table WHERE order_type = %s AND status = 1 AND other LIKE %s",
+        $order_type, $like
+    ));
 }
 
-// zib_shop_get_product_config 已在 product.php 中定义，此处不重复声明
-
-if (!function_exists('zib_shop_get_order_type')) {
-    function zib_shop_get_order_type()
-    {
-        return 10; // 购买商品
+/**
+ * Get shipping status count
+ */
+function zib_shop_get_shipping_status_count($status = '0')
+{
+    // Check if table exists (cached)
+    if (!zib_shop_check_order_table_exists()) {
+        return 0;
     }
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'zibpay_order';
+    $order_type = zib_shop_get_order_type();
+    $like = '%"shipping_status";s:1:"' . esc_sql($status) . '"%';
+
+    return (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $table WHERE order_type = %s AND status = 1 AND other LIKE %s",
+        $order_type, $like
+    ));
 }
 
-// 加载订单状态统计兼容函数（原加密文件被替换后需显式补回）
-$zib_shop_status_count_file = __DIR__ . '/status-count.php';
-if (file_exists($zib_shop_status_count_file)) {
-    require_once $zib_shop_status_count_file;
+/**
+ * Check if product has multiple SKU data
+ */
+function zib_shop_get_is_mudata($post_id = 0)
+{
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+    $config = get_post_meta($post_id, 'shop_product_config', true);
+    if (!is_array($config)) {
+        return false;
+    }
+    return !empty($config['mudata']) || !empty($config['sku']);
+}
+
+/**
+ * URL check data for auth (disabled)
+ */
+function zib_shop_get_url_chick_data()
+{
+    return array();
 }
